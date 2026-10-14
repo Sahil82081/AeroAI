@@ -1,0 +1,23 @@
+OFFICIAL POLICY DOCUMENT: IATA & Montreal Convention 1999: International Air Carrier Liability and Passenger Rights Limits
+PUBLISHER: International Air Transport Association (IATA) / ICAO
+REGULATOR/AIRLINE: ICAO / IATA
+REGION: International
+OFFICIAL URL: https://www.iata.org/en/programs/passenger/passenger-rights/
+EFFECTIVE DATE: 2019-12-28
+VERIFIED SOURCE STATUS: Seed Official Text
+
+MONTREAL CONVENTION 1999 (MC99) & IATA PASSENGER RIGHTS LIABILITIES
+
+1. SPECIAL DRAWING RIGHTS (SDR) STATUTORY LIABILITY LIMITS:
+- Flight Delay Liability: Up to 5,346 SDR per passenger (approx USD 7,100 / EUR 6,600 / INR 5,90,000) for proven economic loss caused by delay in the international carriage of persons.
+- Baggage Destruction, Loss, Damage, or Delay: Up to 1,288 SDR per passenger (revised 2019 to approx USD 1,720 / EUR 1,600 / INR 1,45,000) unless passenger made a special declaration of interest and paid supplementary fee.
+- Cargo Liability: 22 SDR per kilogram.
+
+2. DEFENSE OF CARRIER:
+- Carrier is not liable for damage occasioned by delay if it proves that it and its servants took all measures that could reasonably be required to avoid the damage or that it was impossible to take such measures (force majeure, extraordinary circumstances).
+
+3. NOTICE AND CLAIM WINDOWS:
+- Damage to checked baggage: Must be filed in writing immediately after discovery, at the latest within 7 days from receipt.
+- Delay of checked baggage: Must be filed in writing within 21 days from the date the baggage was placed at passenger disposal.
+- Extinction of rights: Legal action must be brought within 2 years from the date of arrival at destination.
+

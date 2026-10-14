@@ -105,3 +105,16 @@ def test_create_journey_and_booking():
     journeys = j_res.json()
     assert len(journeys) >= 1
     assert journeys[0]["title"] == "SF to Tokyo Tech Summit"
+
+def test_faiss_semantic_search_endpoint():
+    response = client.post(
+        "/api/v1/chat/semantic-search",
+        json={"query": "delay compensation rules", "top_k": 3}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "FAISS" in data["search_engine"]
+    assert data["results_count"] > 0
+    assert len(data["results"]) <= 3
+    assert "document_title" in data["results"][0]
+

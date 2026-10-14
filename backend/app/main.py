@@ -7,6 +7,8 @@ from app.db.init_db import init_db
 from app.api.v1.api import api_router
 from app.api.v1.endpoints import suppliers as suppliers_endpoint
 from app.api.v1.endpoints import events as events_endpoint
+from app.api.v1.endpoints import news as news_endpoint
+from app.api.v1.endpoints import policy_chat as policy_chat_endpoint
 from app.modules.events.pipeline_consumers import event_pipeline
 
 @asynccontextmanager
@@ -40,6 +42,9 @@ app.add_middleware(
 
 # Include API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+# Expose /api/news and /api/chat for direct /api compatibility
+app.include_router(news_endpoint.router, prefix="/api")
+app.include_router(policy_chat_endpoint.router, prefix="/api")
 # Also expose Mock Supplier endpoints at root (/flights/search, /trains/search, /bookings/rebook, etc.)
 app.include_router(suppliers_endpoint.router)
 

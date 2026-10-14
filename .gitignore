@@ -69,6 +69,8 @@ dist-ssr/
 *.sqlite
 *.sqlite3
 autonomous_recovery.db
+chroma_db/
+**/chroma_db/
 
 # IDEs & Editors
 .vscode/

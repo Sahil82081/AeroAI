@@ -34,6 +34,20 @@ class Settings(BaseSettings):
     # Kafka (for future stages)
     KAFKA_BOOTSTRAP_SERVERS: Optional[str] = "localhost:9092"
     
+    # Live News Feed Configuration (Google News RSS)
+    NEWS_FEED_URL: str = "https://news.google.com/rss/search"
+    NEWS_FEED_REGION: str = "IN"
+    NEWS_FEED_LANGUAGE: str = "en-IN"
+    NEWS_FEED_CEID: str = "IN:en"
+    NEWS_CACHE_TTL_SECONDS: int = 900  # 15 minutes TTL
+    NEWS_TIMEOUT_SECONDS: float = 10.0
+    
+    # Airline Policy Knowledge Base & RAG Configuration
+    POLICIES_RAW_DIR: str = "data/policies/raw"
+    POLICIES_DB_DIR: str = "data/policies/chroma_db"
+    POLICIES_MANIFEST_PATH: str = "data/policies/sources.json"
+    POLICIES_INGESTION_MANIFEST: str = "data/policies/ingestion_manifest.json"
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

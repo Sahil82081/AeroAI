@@ -287,6 +287,22 @@ export const apiService = {
     const res = await apiClient.get('/recovery/live-workspace/real-catalog');
     return res.data;
   },
+
+  // Feature 1: Live Travel News Feed (Google News RSS)
+  getNews: async (params = {}) => {
+    const res = await apiClient.get('/news', { params });
+    return res.data;
+  },
+
+  // Feature 2: Airline Policy Chatbot (RAG)
+  sendChatMessage: async (payload) => {
+    const res = await apiClient.post('/chat', payload);
+    return res.data;
+  },
+  getChatHistory: async (sessionId) => {
+    const res = await apiClient.get(`/chat/history/${sessionId}`);
+    return res.data;
+  },
 };
 
 export const api = apiService;

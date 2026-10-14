@@ -1,0 +1,35 @@
+OFFICIAL POLICY DOCUMENT: US Department of Transportation 14 CFR Part 260: Refunds and Other Consumer Protections for Airline Passengers (2024 Final Rule)
+PUBLISHER: US Department of Transportation (DOT)
+REGULATOR/AIRLINE: US DOT
+REGION: United States
+OFFICIAL URL: https://www.transportation.gov/airconsumer/refunds
+EFFECTIVE DATE: 2024-04-24
+VERIFIED SOURCE STATUS: Seed Official Text
+
+US DEPARTMENT OF TRANSPORTATION (DOT) 14 CFR PART 260 & PASSENGER RIGHTS RULE
+
+1. AUTOMATIC CASH REFUNDS MANDATE (EFFECTIVE 2024):
+- Airlines must issue prompt, automatic cash or original form of payment refunds (not vouchers or travel credits) when flights are cancelled or significantly changed, and passenger rejects alternate transportation.
+- 'Significant Change' defined explicitly by federal law:
+  a) Departure or arrival time changes by > 3 hours for domestic flights.
+  b) Departure or arrival time changes by > 6 hours for international flights.
+  c) Departure or arrival airport changes.
+  d) Increase in the number of connection points / layovers.
+  e) Downgrade to a lower class of service.
+  f) Connecting aircraft changes that are less accessible for passengers with disabilities.
+- Refund Timeline:
+  - Within 7 business days if paid by credit card.
+  - Within 20 calendar days if paid by cash, check, or debit.
+
+2. BAGGAGE FEE REFUNDS:
+- If checked bag is not delivered within 12 hours of domestic arrival, or within 15-30 hours of international arrival (depending on flight duration), airline must automatically refund the checked baggage fee.
+
+3. ANCILLARY SERVICE REFUNDS:
+- If passenger paid for Wi-Fi, seat selection, in-flight entertainment, or priority boarding and the service was not provided, full automatic refund of the fee is mandatory.
+
+4. OVERBOOKING & BUMPING (14 CFR PART 250):
+- If involuntarily bumped from an oversold flight:
+  - Delay <= 2 hours (domestic) or <= 4 hours (international): 200% of one-way fare up to USD 775.
+  - Delay > 2 hours (domestic) or > 4 hours (international): 400% of one-way fare up to USD 1,550.
+  - Passenger keeps original ticket and may request cash/check rather than airline vouchers.
+

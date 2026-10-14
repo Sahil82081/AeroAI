@@ -4,6 +4,8 @@ import {
   Mail,
   Network,
   Bell,
+  Bot,
+  MessageSquare,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { InboxView } from './InboxView';
@@ -13,6 +15,7 @@ import { ActionExecutionView } from './ActionExecutionView';
 import { NotificationInboxView } from './NotificationInboxView';
 import { RecoveryPlanPage } from './pages/RecoveryPlanPage';
 import { SimpleGuidedStoryMode } from './pages/SimpleGuidedStoryMode';
+import { PolicyAssistantChat } from './PolicyAssistantChat';
 import {
   ToastViewport,
   ErrorAlertBanner,
@@ -23,6 +26,7 @@ const TOP_TABS = [
   { id: 'inbox', label: 'Email Parser', icon: Mail },
   { id: 'recovery-plan', label: 'AI Optimizer & Graph', icon: Network },
   { id: 'notifications', label: 'Sent Emails & Logs', icon: Bell },
+  { id: 'chatbot', label: 'Policy Chatbot', icon: Bot, badge: 'AI' },
 ];
 
 export function DashboardShell({
@@ -134,6 +138,11 @@ export function DashboardShell({
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
+                  {tab.badge && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 font-bold ml-0.5">
+                      {tab.badge}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -265,7 +274,40 @@ export function DashboardShell({
             {logsSubTab === 'emails' ? <NotificationInboxView /> : <ActionExecutionView />}
           </div>
         )}
+
+        {/* TAB 5: POLICY CHATBOT */}
+        {activePage === 'chatbot' && (
+          <div className="space-y-4">
+            <PolicyAssistantChat
+              activeJourneyContext={
+                currentJourney
+                  ? {
+                      journey_id: currentJourney.id,
+                      airline: 'Air India',
+                      flight_number: 'AI-202',
+                      origin: 'Mumbai',
+                      destination: 'Delhi',
+                      delay_minutes: 240,
+                    }
+                  : null
+              }
+            />
+          </div>
+        )}
       </main>
+
+      {/* Floating Chatbot Quick Button */}
+      {activePage !== 'chatbot' && (
+        <button
+          onClick={() => setActivePage('chatbot')}
+          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2.5 transition-all hover:scale-105 border border-sky-400/30 cursor-pointer group"
+          title="Open Airline Policy & Passenger Rights Legal AI Assistant"
+        >
+          <Bot className="w-5 h-5 text-sky-200 group-hover:rotate-12 transition-transform" />
+          <span className="text-xs font-bold tracking-wide">Ask Policy AI</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        </button>
+      )}
     </div>
   );
 }

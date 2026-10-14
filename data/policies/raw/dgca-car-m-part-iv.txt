@@ -1,0 +1,43 @@
+OFFICIAL POLICY DOCUMENT: DGCA CAR Section 3 Series M Part IV: Facilities to be Provided to Passengers by Airlines Due to Denied Boarding, Cancellation of Flights and Delays in Flights
+PUBLISHER: Directorate General of Civil Aviation (DGCA) India
+REGULATOR/AIRLINE: DGCA
+REGION: India
+OFFICIAL URL: https://www.dgca.gov.in/digigov-portal/Upload?flag=iframeAttachView&attachId=150616198
+EFFECTIVE DATE: 2023-05-18
+VERIFIED SOURCE STATUS: Seed Official Text
+
+DGCA CIVIL AVIATION REQUIREMENTS (CAR) SECTION 3 - AIR TRANSPORT
+SERIES 'M' PART IV (REVISED ISSUE I)
+FACILITIES TO BE PROVIDED TO PASSENGERS BY AIRLINES DUE TO DENIED BOARDING, CANCELLATION OF FLIGHTS AND DELAYS IN FLIGHTS.
+
+1. DENIED BOARDING (OVERBOOKING):
+- When an airline expects to deny boarding due to overbooking, it shall first call for volunteers to surrender seats in exchange for benefits.
+- If involuntary denied boarding occurs, the airline shall compensate the passenger:
+  a) Block time <= 1 hr: 200% of one-way basic fare + airline fuel charge, up to INR 10,000, if alternative flight provided within 1 hr.
+  b) Block time > 1 hr and up to 2 hrs: 300% of one-way basic fare + fuel charge, up to INR 15,000.
+  c) Block time > 2 hrs or if alternate flight offered after 24 hrs: 400% of one-way basic fare + fuel charge, up to INR 20,000.
+  d) If passenger does not opt for alternate flight: Full refund of ticket + 400% of one-way basic fare + fuel charge up to INR 20,000.
+
+2. CANCELLATION OF FLIGHTS:
+- Airlines must inform passengers of cancellation at least 2 weeks in advance and offer alternate flight or full refund.
+- If informed less than 2 weeks and up to 24 hours before scheduled departure, airline must arrange alternate flight departing within 2 hours of original time or refund the ticket.
+- If passengers are not informed or miss connecting flight on same PNR due to cancellation:
+  a) Alternate flight or refund as per passenger choice; AND
+  b) Compensation:
+     - Flights with block time up to 1 hr: INR 5,000 or booked one-way basic fare plus airline fuel charge, whichever is less.
+     - Flights with block time > 1 hr and up to 2 hrs: INR 7,500 or booked basic fare plus fuel charge, whichever is less.
+     - Flights with block time > 2 hrs: INR 10,000 or booked basic fare plus fuel charge, whichever is less.
+- No compensation is payable if cancellation is caused by Extraordinary Circumstances (force majeure, meteorological conditions, ATC instructions, political instability, security risks).
+
+3. FLIGHT DELAYS:
+- For flight delays beyond scheduled departure time:
+  a) Delay >= 2 hours (for flights with block time up to 2.5 hours): Free meals and refreshments commensurate with waiting time.
+  b) Delay >= 3 hours (for flights with block time between 2.5 and 5 hours): Free meals and refreshments.
+  c) Delay >= 4 hours (for all other flights): Free meals and refreshments.
+  d) Delay > 24 hours or domestic flight delayed > 6 hours (scheduled between 20:00 and 03:00 hrs): Airline must provide free hotel accommodation including transfers.
+- For delay >= 5 hours: Passengers have option to cancel ticket and receive full refund without any cancellation fee.
+
+4. BAGGAGE LOSS & DAMAGE:
+- If checked baggage is lost, delayed or damaged, liability is governed by Carriage by Air Act 1972: INR 20,000 per passenger for domestic flights or actual damage proven.
+- Immediate provisional compensation for delayed baggage essentials: INR 2,000-3,000 if delayed > 24 hours away from residence.
+

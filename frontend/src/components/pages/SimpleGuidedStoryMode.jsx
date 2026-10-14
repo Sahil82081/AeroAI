@@ -10,6 +10,7 @@ import {
   Sparkles,
   Trash2,
   Plus,
+  Bot,
 } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -254,7 +255,7 @@ const FALLBACK_REAL_CATALOG = {
   ],
 };
 
-export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync }) {
+export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedPage }) {
   const [workspace, setWorkspace] = useState(null);
   const [catalog, setCatalog] = useState(FALLBACK_REAL_CATALOG);
   const [busy, setBusy] = useState(false);
@@ -555,6 +556,18 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync }) {
           >
             {busy ? 'Working...' : 'Load Mumbai → Delhi → Jaipur Trip'}
           </button>
+
+          {onOpenAdvancedPage && (
+            <button
+              type="button"
+              onClick={() => onOpenAdvancedPage('chatbot')}
+              className="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-sm"
+              title="Open Passenger Rights & Airline Policy AI Chatbot"
+            >
+              <Bot className="w-4 h-4 text-indigo-400" />
+              <span>Ask Passenger Rights AI</span>
+            </button>
+          )}
 
           {bookings.length > 0 && (
             <button
@@ -858,6 +871,16 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync }) {
             >
               {busy ? 'Loading...' : 'Load Mumbai → Delhi → Jaipur Trip'}
             </button>
+            {onOpenAdvancedPage && (
+              <button
+                type="button"
+                onClick={() => onOpenAdvancedPage('chatbot')}
+                className="px-5 py-2.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-200 border border-indigo-700/60 text-xs font-bold flex items-center gap-2 cursor-pointer"
+              >
+                <Bot className="w-4 h-4 text-indigo-400" />
+                <span>Ask Policy Chatbot</span>
+              </button>
+            )}
           </div>
         </div>
       ) : (

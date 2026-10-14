@@ -1,0 +1,38 @@
+OFFICIAL POLICY DOCUMENT: Regulation (EC) No 261/2004 of the European Parliament and of the Council: Common Rules on Compensation and Assistance to Passengers in the Event of Denied Boarding and of Cancellation or Long Delay of Flights
+PUBLISHER: Official Journal of the European Union / EUR-Lex
+REGULATOR/AIRLINE: European Commission
+REGION: European Union
+OFFICIAL URL: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32004R0261
+EFFECTIVE DATE: 2005-02-17
+VERIFIED SOURCE STATUS: Seed Official Text
+
+EUROPEAN UNION REGULATION (EC) NO 261/2004 - PASSENGER RIGHTS DIRECTIVE
+
+1. SCOPE OF APPLICATION:
+- Applies to all flights departing from an EU/EEA/UK airport (any airline).
+- Applies to all flights arriving at an EU/EEA/UK airport operated by an EU/UK licensed air carrier.
+
+2. FLIGHT DELAYS (STURGEON JUDGMENT ECJ RECOGNIZED):
+- If flight arrives at final destination with delay >= 3 hours, passengers are entitled to fixed statutory compensation unless caused by extraordinary circumstances:
+  a) Type 1 (Flights <= 1,500 km): EUR 250 per passenger.
+  b) Type 2 (Intra-EU flights > 1,500 km, or other flights between 1,500 km and 3,500 km): EUR 400 per passenger.
+  c) Type 3 (All other flights > 3,500 km): EUR 600 per passenger.
+- Right to Care:
+  - Delay >= 2 hours (<=1500km), 3 hours (1500-3500km), or 4 hours (>3500km): Free meals, refreshments, 2 phone calls/emails.
+  - Delay requiring overnight stay: Free hotel accommodation and transport.
+- Delay >= 5 hours: Right to abandon journey and receive 100% full refund within 7 days, plus free return flight to original departure point.
+
+3. FLIGHT CANCELLATIONS:
+- Right to compensation (EUR 250 / EUR 400 / EUR 600) unless:
+  a) Informed at least 2 weeks before scheduled departure time; OR
+  b) Informed between 2 weeks and 7 days, and offered re-routing departing <= 2h before and arriving < 4h after scheduled arrival; OR
+  c) Informed < 7 days, and offered re-routing departing <= 1h before and arriving < 2h after scheduled arrival; OR
+  d) Airline proves cancellation was caused by Extraordinary Circumstances (severe weather, ATC strike, safety threat, closure of airspace). Technical faults are generally NOT extraordinary circumstances.
+
+4. DENIED BOARDING (OVERBOOKING):
+- Immediate compensation of EUR 250 / EUR 400 / EUR 600.
+- Choice between:
+  a) Full reimbursement within 7 days; OR
+  b) Re-routing to final destination under comparable transport conditions at the earliest opportunity; OR
+  c) Re-routing at a later date at passenger's convenience subject to seat availability.
+
