@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
-from typing import List, Optional
+from pydantic import field_validator
+from typing import List, Optional, Union
 import os
 
 class Settings(BaseSettings):
@@ -26,7 +27,21 @@ class Settings(BaseSettings):
     POSTGRES_PORT: Optional[int] = 5432
     
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
+    BACKEND_CORS_ORIGINS: Union[List[str], str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
+    
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            if v.strip() == "*":
+                return ["*"]
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
     
     # Gemini AI (for future stages)
     GEMINI_API_KEY: Optional[str] = None
