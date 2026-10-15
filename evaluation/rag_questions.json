@@ -1,0 +1,444 @@
+[
+  {
+    "id": "baggage_01",
+    "category": "baggage",
+    "question": "What is the standard free checked baggage and cabin baggage allowance for domestic economy passengers on IndiGo?",
+    "expected_key_facts": [
+      "15 kg checked baggage",
+      "7 kg cabin baggage",
+      "1 piece",
+      "max 115 cm"
+    ],
+    "relevant_source": "IndiGo Conditions of Carriage: 8. BAGGAGE",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "baggage_02",
+    "category": "baggage",
+    "question": "What are the cabin baggage and checked baggage allowances across Economy and Business class on Air India?",
+    "expected_key_facts": [
+      "15 kg to 20 kg Comfort/Comfort Plus",
+      "35 kg Business Class",
+      "7 kg Economy cabin",
+      "12 kg Business cabin"
+    ],
+    "relevant_source": "Air India Citizen's Charter: 2. BAGGAGE ALLOWANCE",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "baggage_03",
+    "category": "baggage",
+    "question": "What is the airline liability limit for lost or delayed baggage on international flights under the Montreal Convention 1999?",
+    "expected_key_facts": [
+      "1,288 Special Drawing Rights",
+      "1288 SDR",
+      "Montreal Convention 1999 Article 22"
+    ],
+    "relevant_source": "Montreal Convention 1999: ARTICLE 22 - LIMITS OF LIABILITY",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "baggage_04",
+    "category": "baggage",
+    "question": "What document must a passenger lodge at the airport baggage service desk immediately upon noticing damaged or missing luggage?",
+    "expected_key_facts": [
+      "Property Irregularity Report",
+      "PIR",
+      "written complaint",
+      "baggage service desk"
+    ],
+    "relevant_source": "Ministry of Civil Aviation DGCA Passenger Charter: 4. BAGGAGE ALLOWANCE & COMPENSATION",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "cancellation_01",
+    "category": "cancellation",
+    "question": "What compensation is an airline mandated to pay under DGCA regulations if a domestic flight is cancelled with less than 24 hours notice?",
+    "expected_key_facts": [
+      "INR 5,000 to INR 10,000",
+      "basic fare plus fuel surcharge",
+      "alternate flight",
+      "full refund"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.3 CANCELLATION OF FLIGHT",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "cancellation_02",
+    "category": "cancellation",
+    "question": "If an airline informs a passenger of flight cancellation more than two weeks before departure, what compensation is owed?",
+    "expected_key_facts": [
+      "No financial compensation",
+      "alternate flight",
+      "100% full refund",
+      "informed more than 2 weeks"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.3 CANCELLATION OF FLIGHT",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "cancellation_03",
+    "category": "cancellation",
+    "question": "What statutory compensation tiers apply to cancelled flights under EU Regulation 261/2004?",
+    "expected_key_facts": [
+      "EUR 250 for flights <= 1,500 km",
+      "EUR 400 for 1,500 to 3,500 km",
+      "EUR 600 for flights > 3,500 km",
+      "less than 14 days notice"
+    ],
+    "relevant_source": "EU Regulation 261/2004: ARTICLE 5 & 7",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "cancellation_04",
+    "category": "cancellation",
+    "question": "Under what conditions is an airline exempt from paying cancellation compensation to passengers?",
+    "expected_key_facts": [
+      "Extraordinary circumstances",
+      "weather / meteorological conditions",
+      "Air Traffic Control (ATC) directives",
+      "security risks / force majeure"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.3 CANCELLATION OF FLIGHT",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "refund_01",
+    "category": "refund",
+    "question": "Under US DOT 14 CFR Part 260, within how many business days must an airline issue an automatic refund for credit card payments when a flight is cancelled?",
+    "expected_key_facts": [
+      "7 business days",
+      "credit card",
+      "automatic refund",
+      "original form of payment"
+    ],
+    "relevant_source": "US DOT 14 CFR Part 260: SECTION 260.6 REFUND TIMELINE",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "refund_02",
+    "category": "refund",
+    "question": "If an airline cancels a flight or delay exceeds 5 hours, is the refund limited to the base fare or does it include airport taxes?",
+    "expected_key_facts": [
+      "100% full refund",
+      "base fare",
+      "fuel surcharge",
+      "User Development Fee (UDF)",
+      "Passenger Service Fee (PSF)"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.3.2 REFUND OF TICKETS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "refund_03",
+    "category": "refund",
+    "question": "What are the refund processing timelines for cash and travel agent bookings under DGCA CAR Section 3 Series M Part IV?",
+    "expected_key_facts": [
+      "Immediate refund for cash",
+      "7 working days for credit card",
+      "within 30 working days for travel agent"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.3.2 REFUND OF TICKETS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "refund_04",
+    "category": "refund",
+    "question": "Are passengers entitled to a full refund if they decline an alternative flight offered by the airline following a significant schedule change?",
+    "expected_key_facts": [
+      "Yes",
+      "statutory right to decline",
+      "full prompt refund without penalty",
+      "alternative transportation refused"
+    ],
+    "relevant_source": "US DOT 14 CFR Part 260: SECTION 260.5",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "delay_01",
+    "category": "delay",
+    "question": "What facilities must an airline provide to passengers experiencing a domestic flight delay between 2 and 4 hours in India?",
+    "expected_key_facts": [
+      "Free meals and refreshments",
+      "waiting time",
+      "tea/coffee",
+      "duty of care"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.4 FLIGHT DELAYS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "delay_02",
+    "category": "delay",
+    "question": "At what delay threshold are passengers entitled to cancel their journey and demand a 100% refund without penalty under DGCA regulations?",
+    "expected_key_facts": [
+      "5 hours or more delay",
+      "100% full refund",
+      "without cancellation penalty",
+      "passenger choice"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.4 FLIGHT DELAYS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "delay_03",
+    "category": "delay",
+    "question": "When is an airline legally required to provide free hotel accommodation and ground transport for delayed passengers?",
+    "expected_key_facts": [
+      "Overnight delay",
+      "more than 24 hours",
+      "flights scheduled between 20:00 and 03:00 delayed > 6 hours",
+      "free hotel and ground transfers"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.4 FLIGHT DELAYS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "delay_04",
+    "category": "delay",
+    "question": "What monetary compensation is mandated under UK261 for flights arriving more than 3 hours late at their final destination?",
+    "expected_key_facts": [
+      "Arrival delay >= 3 hours",
+      "GBP 220 for <= 1,500 km",
+      "GBP 350 for 1,500-3,500 km",
+      "GBP 520 for > 3,500 km"
+    ],
+    "relevant_source": "UK CAA UK261 Air Passenger Rights: 2. DELAYS & COMPENSATION",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "eligibility_01",
+    "category": "eligibility",
+    "question": "What statutory compensation must an airline pay if a passenger is involuntarily denied boarding due to an overbooked flight in India?",
+    "expected_key_facts": [
+      "Seek volunteers first",
+      "200% basic fare up to INR 10,000",
+      "400% basic fare up to INR 20,000",
+      "alternate flight or refund"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.2 DENIED BOARDING",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "eligibility_02",
+    "category": "eligibility",
+    "question": "What are the rules and compensation limits for involuntary bumping under US DOT regulations?",
+    "expected_key_facts": [
+      "Involuntary denied boarding",
+      "up to 400% of one-way fare",
+      "maximum USD 1,550",
+      "call for volunteers"
+    ],
+    "relevant_source": "US DOT 14 CFR Part 260 / DOT Overbooking: OVERBOOKING & BUMPING",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "eligibility_03",
+    "category": "eligibility",
+    "question": "What special assistance entitlements are guaranteed for Persons with Reduced Mobility (PRM) at the airport and aircraft?",
+    "expected_key_facts": [
+      "Free wheelchair assistance",
+      "curbside to cabin seat",
+      "priority check-in and boarding",
+      "guide dogs in cabin free"
+    ],
+    "relevant_source": "Ministry of Civil Aviation DGCA Passenger Charter: 5. PERSONS WITH DISABILITIES",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "eligibility_04",
+    "category": "eligibility",
+    "question": "What medical certification is required for expectant mothers travelling during pregnancy on commercial flights?",
+    "expected_key_facts": [
+      "Up to 28 weeks permitted without certificate",
+      "28 to 36 weeks requires Fit-to-Fly certificate",
+      "issued within 48 to 72 hours",
+      ">= 36 weeks restricted"
+    ],
+    "relevant_source": "IndiGo Conditions of Carriage: 7. SPECIAL ASSISTANCE & MEDICAL",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "simple_lookup_01",
+    "category": "simple lookup",
+    "question": "What are the maximum permissible cabin baggage linear dimensions (length + width + height) on IndiGo?",
+    "expected_key_facts": [
+      "115 cm",
+      "55 x 35 x 25 cm",
+      "7 kg cabin baggage"
+    ],
+    "relevant_source": "IndiGo Conditions of Carriage: 8. BAGGAGE",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "simple_lookup_02",
+    "category": "simple lookup",
+    "question": "What is the standard excess baggage fee per kilogram charged at the airport check-in counter for domestic Indian airlines?",
+    "expected_key_facts": [
+      "Approx INR 550 to INR 600 per kg",
+      "airport counter fee",
+      "prepaid slabs discounted online"
+    ],
+    "relevant_source": "Air India Citizen's Charter: 2. BAGGAGE ALLOWANCE",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "simple_lookup_03",
+    "category": "simple lookup",
+    "question": "What is the age eligibility criteria for a child to travel under the Unaccompanied Minor (UMNR) service on scheduled airlines?",
+    "expected_key_facts": [
+      "Children aged 5 to under 12",
+      "travelling alone",
+      "dedicated airline escort",
+      "handover to designated guardian"
+    ],
+    "relevant_source": "Air India Citizen's Charter: 3. SPECIAL ASSISTANCE",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "simple_lookup_04",
+    "category": "simple lookup",
+    "question": "Up to how many characters can be corrected free of charge for typographical errors in a passenger name on a flight ticket?",
+    "expected_key_facts": [
+      "Up to 3 characters",
+      "first or last name",
+      "within 24 hours of booking",
+      "government photo ID required"
+    ],
+    "relevant_source": "Ministry of Civil Aviation DGCA Passenger Charter: 2. BOOKINGS & NAME CORRECTIONS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "ambiguous_01",
+    "category": "ambiguous questions",
+    "question": "Can I get my money back for my ticket?",
+    "expected_key_facts": [
+      "100% full refund if cancelled or delayed > 5h by airline",
+      "voluntary passenger cancellation subject to fare rules and cancellation fees",
+      "non-refundable tickets forfeit base fare but airport taxes refunded"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.3.2 REFUND OF TICKETS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "ambiguous_02",
+    "category": "ambiguous questions",
+    "question": "What happens if I'm late?",
+    "expected_key_facts": [
+      "Passenger no-show forfeit or gate closure (45-60 min cutoff)",
+      "airline flight delay entitles passenger to refreshments and care",
+      "distinction between airline delay vs passenger late check-in"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.4 FLIGHT DELAYS",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "ambiguous_03",
+    "category": "ambiguous questions",
+    "question": "Are my bags covered if anything happens?",
+    "expected_key_facts": [
+      "International flights covered up to 1,288 SDR under Montreal Convention 1999",
+      "domestic flights covered under airline Conditions of Carriage",
+      "Property Irregularity Report (PIR) must be filed immediately"
+    ],
+    "relevant_source": "Montreal Convention 1999: ARTICLE 22",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "multihop_01",
+    "category": "multi-hop",
+    "question": "If my international flight from Delhi to London is delayed by 4 hours and then cancelled by the airline, what meal and monetary compensation rights apply under EU/UK regulations?",
+    "expected_key_facts": [
+      "Duty of care: free food, drinks, and communications",
+      "Cancellation compensation: GBP 520 / EUR 600 for long-haul > 3,500 km",
+      "Full ticket refund or alternate re-routing within 7 days",
+      "UK261 / EU261 Article 5 & 6"
+    ],
+    "relevant_source": "UK CAA UK261 Air Passenger Rights / EU Regulation 261/2004",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "multihop_02",
+    "category": "multi-hop",
+    "question": "If an airline involuntarily denies me boarding on an overbooked flight and the only alternative flight is delayed until the next morning, what compensation and accommodation must be provided?",
+    "expected_key_facts": [
+      "Denied boarding statutory compensation: 400% of basic fare up to INR 20,000",
+      "Overnight delay accommodation: free hotel room and ground transport",
+      "Right to alternative flight or full refund"
+    ],
+    "relevant_source": "DGCA CAR Section 3 Series M Part IV: 3.2 & 3.4",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "multihop_03",
+    "category": "multi-hop",
+    "question": "If an international flight is delayed by 5 hours and my checked luggage is delayed upon arrival, what refund options and baggage claims can I pursue simultaneously?",
+    "expected_key_facts": [
+      "100% refund entitlement if passenger declines travel for delay >= 5 hours",
+      "Baggage delay claim up to 1,288 SDR under Montreal Convention",
+      "Property Irregularity Report (PIR) filing required"
+    ],
+    "relevant_source": "Montreal Convention 1999 & US DOT 14 CFR Part 260 / DGCA CAR M Part IV",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "multihop_04",
+    "category": "multi-hop",
+    "question": "If my flight is cancelled by the airline, can I correct a minor spelling typo in my name and rebook onto a different date without paying change fees?",
+    "expected_key_facts": [
+      "Free typographical name correction up to 3 characters",
+      "Free rebooking to convenient alternate date without change fees or fare difference",
+      "Airline cancellation waiver protections"
+    ],
+    "relevant_source": "DGCA Passenger Charter & DGCA CAR M Part IV: 3.3.1",
+    "is_out_of_scope": false
+  },
+  {
+    "id": "outofscope_01",
+    "category": "out-of-scope",
+    "question": "How do I bake chocolate chip cookies from scratch?",
+    "expected_key_facts": [
+      "Refusal notice",
+      "insufficient evidence in authoritative travel policy documents",
+      "out of scope"
+    ],
+    "relevant_source": "None (Out-of-Scope)",
+    "is_out_of_scope": true
+  },
+  {
+    "id": "outofscope_02",
+    "category": "out-of-scope",
+    "question": "Who was the first Prime Minister of Australia and what were his achievements?",
+    "expected_key_facts": [
+      "Refusal notice",
+      "insufficient evidence in authoritative travel policy documents",
+      "out of scope"
+    ],
+    "relevant_source": "None (Out-of-Scope)",
+    "is_out_of_scope": true
+  },
+  {
+    "id": "outofscope_03",
+    "category": "out-of-scope",
+    "question": "What is the policy for transporting radioactive plutonium in passenger carry-on luggage?",
+    "expected_key_facts": [
+      "Refusal notice",
+      "insufficient evidence regarding radioactive plutonium",
+      "contact airline dangerous goods desk"
+    ],
+    "relevant_source": "None (Out-of-Scope / Hazardous Material Missing Evidence)",
+    "is_out_of_scope": true
+  },
+  {
+    "id": "outofscope_04",
+    "category": "out-of-scope",
+    "question": "Can I bring my pet iguana inside the passenger cabin on a domestic scheduled flight?",
+    "expected_key_facts": [
+      "Refusal notice",
+      "insufficient evidence in authoritative travel policy documents regarding iguana",
+      "contact airline special assistance"
+    ],
+    "relevant_source": "None (Out-of-Scope / Missing Evidence)",
+    "is_out_of_scope": true
+  }
+]

@@ -1,0 +1,102 @@
+{
+  "baseline_logistic_regression": {
+    "model_name": "Logistic Regression (Weather Baseline)",
+    "decision_threshold": 0.5,
+    "accuracy": 0.7706,
+    "precision": 0.9259,
+    "recall": 0.0013,
+    "f1": 0.0026,
+    "roc_auc": 0.6321,
+    "brier_score": 0.1955,
+    "confusion_matrix": [
+      [
+        63635,
+        2
+      ],
+      [
+        18947,
+        25
+      ]
+    ]
+  },
+  "random_forest": {
+    "model_name": "Random Forest (Weather-Enriched)",
+    "decision_threshold": 0.5,
+    "accuracy": 0.7778,
+    "precision": 0.6805,
+    "recall": 0.0614,
+    "f1": 0.1126,
+    "roc_auc": 0.6929,
+    "brier_score": 0.1614,
+    "confusion_matrix": [
+      [
+        63090,
+        547
+      ],
+      [
+        17807,
+        1165
+      ]
+    ]
+  },
+  "random_forest_operational": {
+    "model_name": "Random Forest (Weather @ 0.25)",
+    "decision_threshold": 0.25,
+    "accuracy": 0.7369,
+    "precision": 0.4272,
+    "recall": 0.4275,
+    "f1": 0.4274,
+    "roc_auc": 0.6929,
+    "brier_score": 0.1614,
+    "confusion_matrix": [
+      [
+        52761,
+        10876
+      ],
+      [
+        10861,
+        8111
+      ]
+    ]
+  },
+  "xgboost": {
+    "model_name": "XGBoost (Weather-Enriched)",
+    "decision_threshold": 0.5,
+    "accuracy": 0.7798,
+    "precision": 0.6589,
+    "recall": 0.0854,
+    "f1": 0.1513,
+    "roc_auc": 0.6876,
+    "brier_score": 0.1656,
+    "confusion_matrix": [
+      [
+        62798,
+        839
+      ],
+      [
+        17351,
+        1621
+      ]
+    ]
+  },
+  "xgboost_operational": {
+    "model_name": "XGBoost (Weather @ 0.25)",
+    "decision_threshold": 0.25,
+    "accuracy": 0.7677,
+    "precision": 0.4907,
+    "recall": 0.3088,
+    "f1": 0.3791,
+    "roc_auc": 0.6876,
+    "brier_score": 0.1656,
+    "confusion_matrix": [
+      [
+        57557,
+        6080
+      ],
+      [
+        13113,
+        5859
+      ]
+    ]
+  }
+}

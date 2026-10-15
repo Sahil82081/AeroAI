@@ -63,6 +63,13 @@ class Settings(BaseSettings):
     POLICIES_MANIFEST_PATH: str = "data/policies/sources.json"
     POLICIES_INGESTION_MANIFEST: str = "data/policies/ingestion_manifest.json"
     
+    # Flight Provider Configuration (OpenSky / Aviationstack / Mock GDS)
+    FLIGHT_PROVIDER_MODE: str = "auto"  # "auto", "real", "mock"
+    OPENSKY_USERNAME: Optional[str] = None
+    OPENSKY_PASSWORD: Optional[str] = None
+    AVIATIONSTACK_API_KEY: Optional[str] = None
+    FLIGHT_API_TIMEOUT_SECONDS: float = 5.0
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

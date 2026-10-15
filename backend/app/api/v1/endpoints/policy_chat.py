@@ -20,6 +20,7 @@ class CitationModel(BaseModel):
     page_number: int
     source_url: str
     effective_date: str
+    quote: Optional[str] = None
 
 class ChatResponse(BaseModel):
     session_id: str
@@ -28,6 +29,7 @@ class ChatResponse(BaseModel):
     confidence: float
     journey_context: Optional[Dict[str, Any]] = None
     retrieved_chunk_count: int = 0
+    sufficient_evidence: bool = True
 
 @router.post("", response_model=ChatResponse, summary="Ask Airline Policy & Passenger Rights Legal Assistant")
 async def ask_policy_chat(request: ChatRequest):

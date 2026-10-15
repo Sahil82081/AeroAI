@@ -1,0 +1,26 @@
+{
+  "trained_at": "2026-10-14T20:10:32Z",
+  "dataset": "U.S. DOT BTS Airline On-Time Performance (NYC 2013) + NOAA/ASOS Surface Weather",
+  "weather_source": "NOAA ASOS Station Surface Observations",
+  "train_rows": 244737,
+  "test_rows": 82609,
+  "train_delay_rate": 0.2498,
+  "test_delay_rate": 0.2297,
+  "best_model": "Random Forest",
+  "best_roc_auc": 0.6929,
+  "feature_count": 48,
+  "weather_features_included": [
+    "temp",
+    "dewp",
+    "humid",
+    "wind_speed",
+    "precip",
+    "pressure",
+    "visib",
+    "is_fog",
+    "is_high_wind",
+    "is_freezing",
+    "has_precip"
+  ],
+  "target_definition": "arr_delay >= 15 minutes"
+}

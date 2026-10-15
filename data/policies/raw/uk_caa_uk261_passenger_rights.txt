@@ -1,0 +1,30 @@
+OFFICIAL POLICY DOCUMENT: UK Civil Aviation Authority (CAA) UK261 Air Passenger Rights
+PUBLISHER: UK Civil Aviation Authority
+REGULATOR/AIRLINE: UK CAA
+REGION: United Kingdom
+OFFICIAL URL: https://www.caa.co.uk/passengers-and-public/resolving-travel-problems/delays-and-cancellations/
+EFFECTIVE DATE: 2021-01-01
+VERIFIED SOURCE STATUS: Seed Official Text
+
+UK CIVIL AVIATION AUTHORITY (CAA) UK261 AIR PASSENGER RIGHTS REGULATIONS
+
+Following the United Kingdom's withdrawal from the European Union, Regulation (EC) No 261/2004 was retained into UK domestic law as 'UK261'.
+
+1. COMPENSATION AMOUNTS IN GBP:
+- Statutory cash compensation for flight delays >= 3 hours and late cancellations:
+  a) Short-haul flights (distance under 1,500 km): GBP 220 per passenger.
+  b) Medium-haul flights (distance between 1,500 km and 3,500 km): GBP 350 per passenger.
+  c) Long-haul flights (distance over 3,500 km): GBP 520 per passenger.
+- 50% reduction applies if airline offers re-routing and arrival delay does not exceed 2 hours (short haul), 3 hours (medium haul), or 4 hours (long haul).
+- Extraordinary circumstances exemption: Compensation is not due if delay is caused by air traffic control strikes, meteorological hazards, or security risks. Technical aircraft defects are NOT extraordinary circumstances.
+
+2. ASSISTANCE, RE-ROUTING & DUTY OF CARE:
+- Right to care (meals, refreshments, communications):
+  a) Flights under 1,500 km delayed by 2 hours or more.
+  b) Flights between 1,500 km and 3,500 km delayed by 3 hours or more.
+  c) Flights over 3,500 km delayed by 4 hours or more.
+- Overnight delays: Free hotel accommodation and transfers between airport and hotel.
+- Right to re-routing: Under UK CAA guidelines, if the operating airline cannot rebook passengers on its own flights departing on the same day or within a reasonable timeframe, it must rebook the passenger on competitor airlines or alternate transport.
+
+3. REFUND ELIGIBILITY:
+- If a flight delay exceeds 5 hours, passengers who decide not to travel are legally entitled to a full 100% refund of all flight sectors not flown, processed within 7 days.

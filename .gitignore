@@ -82,6 +82,15 @@ chroma_db/
 .pydevproject
 .settings/
 
+# Logs
+*.log
+backend/logs/
+logs/
+
+# Scratch & Temporary experiments
+scratch/
+.system_generated/
+
 # OS generated files
 .DS_Store
 .DS_Store?

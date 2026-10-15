@@ -309,6 +309,60 @@ export const apiService = {
     const res = await apiClient.get(`/chat/history/${sessionId}`);
     return res.data;
   },
+
+  // Stage 6: Flight Provider & Live Status Intelligence
+  getFlightStatus: async (flightNumber, date = null) => {
+    const params = date ? { date } : {};
+    const res = await apiClient.get(`/flights/status/${flightNumber}`, { params });
+    return res.data;
+  },
+  getFlightPrediction: async (flightNumber, date = null) => {
+    const params = date ? { date } : {};
+    const res = await apiClient.get(`/flights/status/${flightNumber}/prediction`, { params });
+    return res.data;
+  },
+  searchFlightInventory: async (params) => {
+    const res = await apiClient.get('/flights/inventory', { params });
+    return res.data;
+  },
+  getFlightProviderInfo: async () => {
+    const res = await apiClient.get('/flights/provider-info');
+    return res.data;
+  },
+
+  // Weather Intelligence
+  getWeatherObservation: async (airportCode) => {
+    const res = await apiClient.get(`/weather/observation/${airportCode}`);
+    return res.data;
+  },
+
+  // Stage 7: AeroAI Unified AI Agent
+  sendAgentQuery: async (payload) => {
+    const res = await apiClient.post('/agent/query', payload);
+    return res.data;
+  },
+  sendAgentChat: async (payload) => {
+    const res = await apiClient.post('/agent/chat', payload);
+    return res.data;
+  },
+  getAgentTools: async () => {
+    const res = await apiClient.get('/agent/tools');
+    return res.data;
+  },
+  getAgentAuditLogs: async (limit = 20) => {
+    const res = await apiClient.get('/agent/audit-logs', { params: { limit } });
+    return res.data;
+  },
+
+  // Stage 4: Machine Learning Model Metrics & Evaluation Benchmarks
+  getModelEvaluationMetrics: async () => {
+    const res = await apiClient.get('/predict/evaluation-metrics');
+    return res.data;
+  },
+  getModelInfo: async () => {
+    const res = await apiClient.get('/predict/model-info');
+    return res.data;
+  },
 };
 
 export const api = apiService;

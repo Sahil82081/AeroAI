@@ -16,17 +16,19 @@ import { NotificationInboxView } from './NotificationInboxView';
 import { RecoveryPlanPage } from './pages/RecoveryPlanPage';
 import { SimpleGuidedStoryMode } from './pages/SimpleGuidedStoryMode';
 import { PolicyAssistantChat } from './PolicyAssistantChat';
+import { AeroAIFlightIntelligenceView } from './AeroAIFlightIntelligenceView';
 import {
   ToastViewport,
   ErrorAlertBanner,
 } from './ui/SaaSPrimitives';
 
 const TOP_TABS = [
+  { id: 'intelligence', label: 'Flight Intelligence & Agent', icon: Bot, badge: 'Live AI' },
   { id: 'guided', label: 'My Journey', icon: Sparkles },
   { id: 'inbox', label: 'Email Parser', icon: Mail },
   { id: 'recovery-plan', label: 'AI Optimizer & Graph', icon: Network },
   { id: 'notifications', label: 'Sent Emails & Logs', icon: Bell },
-  { id: 'chatbot', label: 'Policy Chatbot', icon: Bot, badge: 'AI' },
+  { id: 'chatbot', label: 'Policy Chatbot', icon: MessageSquare },
 ];
 
 export function DashboardShell({
@@ -41,7 +43,7 @@ export function DashboardShell({
   loading,
   error = null,
 }) {
-  const [activePage, setActivePage] = useState('guided');
+  const [activePage, setActivePage] = useState('intelligence');
   const [toasts, setToasts] = useState([]);
   const [actionHistory, setActionHistory] = useState(null);
   const [runningDemo, setRunningDemo] = useState(false);
@@ -151,8 +153,11 @@ export function DashboardShell({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
         <ErrorAlertBanner error={error} onRetry={onRefresh} />
+
+        {/* PRIMARY TAB: FLIGHT INTELLIGENCE & UNIFIED AGENT */}
+        {activePage === 'intelligence' && <AeroAIFlightIntelligenceView />}
 
         {/* TAB 1: MY JOURNEY (Primary Clean Workspace) */}
         {activePage === 'guided' && (

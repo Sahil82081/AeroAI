@@ -1,41 +1,42 @@
-# TripWeave AI (AeroAI) — Current Architecture Audit
+# AeroAI — Current Architecture Audit
 
-> **Document Version**: 1.0.0 (Stage 0 Baseline Audit)  
-> **Date**: October 2026  
-> **Branch**: `dev`  
-> **Scope**: Complete repository inspection, subsystem classification, security analysis, and gap evaluation.
+> **Document Version**: 1.0.0 (Stage 1 Audit Baseline)  
+> **System Name**: AeroAI (Autonomous Disruption Recovery System)  
+> **Audit Date**: October 2026  
+> **Status**: Verified via Comprehensive Repository Inspection
 
 ---
 
 ## 1. Executive Summary
 
-The repository currently exists as **AeroAI: Autonomous Disruption Recovery System**, a proof-of-concept / demo application focused on downstream travel disruption propagation, constraint optimization using Google OR-Tools CP-SAT, and an 8-node LangGraph recovery state machine for an Indian Golden Triangle multi-leg itinerary.
+**AeroAI** was originally built as a demonstration platform for multi-modal travel disruption recovery. Its primary strengths lie in discrete itinerary modeling via **NetworkX directed graphs (`nx.DiGraph`)**, mathematical integer programming via **Google OR-Tools CP-SAT**, and an **8-node LangGraph execution workflow** tailored to an Indian Golden Triangle travel scenario (Mumbai flight $\rightarrow$ Delhi train $\rightarrow$ Agra hotel/car).
 
-While the existing system contains sophisticated graph mechanics (NetworkX) and discrete mathematical optimization (OR-Tools CP-SAT), **it currently lacks the core machine learning and unified agentic capabilities** expected in a production-grade AI/ML engineering portfolio:
-1. **Zero Flight Delay ML Models**: No training pipeline, no real aviation dataset, no scikit-learn/XGBoost models, and no feature engineering exist in the repository. Disruption events are manually triggered or hardcoded.
-2. **Zero Weather Integration**: Weather is merely an enum value (`DisruptionType.WEATHER`) without real or historical weather data integration.
-3. **Pseudo-Vector RAG Engine**: The policy search claims semantic vector retrieval via FAISS, but the underlying vector computation is an MD5 hash-projection modulo 128 (feature hashing) rather than true dense semantic embeddings. When LLM keys are absent, answer synthesis falls back to a brittle string-matching keyword heuristic.
-4. **Isolated Subsystems**: The 8-node LangGraph workflow, the policy RAG chatbot, the mock suppliers, and the news feed operate as separate silos rather than a coordinated agentic system.
+However, a technical audit reveals that **the system currently lacks production-grade Machine Learning, real aviation telemetry, and unified agentic intelligence**:
+1. **Zero Flight Delay Prediction ML**: There is no ML model, training script, feature engineering pipeline, or real flight dataset in the repository. Disruption events and delay minutes are manually entered or hardcoded.
+2. **Zero Weather Integration**: Weather exists only as an enum variant (`DisruptionType.WEATHER`) without meteorological data feeds or features.
+3. **Pseudo-Vector RAG Engine**: The policy search component claims semantic vector search using FAISS, but vector representations are computed via a lightweight deterministic 128-dimensional MD5 bag-of-words hash rather than true dense neural embeddings. When Gemini API keys are absent, answer generation falls back to rigid regex and keyword heuristics.
+4. **Isolated Subsystems**: The LangGraph recovery state machine, the policy RAG chatbot, the mock suppliers, and the Google News RSS feed operate as separate modules rather than an integrated, evidence-grounded agent.
+5. **Simulated Infrastructure**: Event streaming is handled by an in-memory Kafka broker simulator (`KafkaEventBroker`), and third-party travel providers are in-memory mock datasets called via ASGI `TestClient`.
 
 ---
 
-## 2. Current Architecture & Technology Stack
-
-### 2.1 High-Level Architecture Diagram
+## 2. High-Level Architecture Diagram
 
 ```mermaid
 flowchart TD
-    subgraph Client["Frontend Client (React 18 + Vite)"]
-        Dashboard["Dashboard Shell"]
+    subgraph Client["Frontend Client (React 18 + Vite :5173)"]
+        Dashboard["Dashboard Shell (DashboardShell.jsx)"]
         StoryMode["Simple Guided Story Mode"]
         RAGChat["Policy Assistant Chat UI"]
-        OptView["OR-Tools & LangGraph Views"]
+        OptView["OR-Tools & Graph Views"]
+        OrphanViews["Unrouted Views: NewsFeed, KafkaStream"]
     end
 
-    subgraph Gateway["FastAPI API Gateway (:8000)"]
-        APIRouter["API Router (/api/v1 and /api)"]
-        WS["WebSocket (/ws/events, /api/v1/events/ws)"]
-        AuthMiddleware["JWT Authentication Middleware"]
+    subgraph Gateway["FastAPI Gateway (:8000)"]
+        APIRouter["API Router (/api/v1)"]
+        CompatRouter["Compatibility Routers (/api, /)"]
+        WS["WebSocket Server (/ws/events)"]
+        AuthMiddleware["JWT Authentication & Dependencies"]
     end
 
     subgraph CoreServices["Backend Domain Modules"]
@@ -45,162 +46,271 @@ flowchart TD
         LangGraphNodes["8-Node LangGraph Recovery Workflow"]
         PolicyRAG["Policy RAG Service (BM25 + FAISS Hash Vectors)"]
         News["News RSS Service (Google News RSS)"]
+        Ingestion["Email Parser (Heuristic + Gemini Fallback)"]
     end
 
-    subgraph DataStore["Data & Persistence"]
-        SQLiteDB[("SQLite: autonomous_recovery.db")]
-        PolicyStore[("Raw Policies & FAISS FlatIP Index")]
-        EventBus["In-Memory Kafka Broker Simulator"]
-        MockGDS["In-Memory Mock Supplier Datasets"]
+    subgraph SupplierLayer["Supplier Ecosystem"]
+        Adapters["Supplier Adapters (BaseMockSupplierAdapter)"]
+        MockGateway["Mock Supplier ASGI Gateway (mock-suppliers/)"]
     end
 
-    Client <-->|HTTP / REST| APIRouter
+    subgraph Storage["Data Persistence & State"]
+        SQLiteDB[("SQLite Database: autonomous_recovery.db")]
+        PolicyStore[("Vector Store: JSON Chunks, BM25 Index, FAISS Index")]
+        InMemKafka[("In-Memory KafkaEventBroker & Dead-Letter Queue")]
+    end
+
+    Client <-->|HTTP REST| APIRouter
     Client <-->|WebSocket| WS
     APIRouter --> AuthMiddleware
+    CompatRouter --> AuthMiddleware
     AuthMiddleware --> CoreServices
     CoreServices --> SQLiteDB
     PolicyRAG --> PolicyStore
-    Disruptions --> EventBus
-    Optimizer --> MockGDS
+    Disruptions --> InMemKafka
     LangGraphNodes --> Optimizer
+    LangGraphNodes --> Adapters
+    Adapters --> MockGateway
 ```
 
-### 2.2 Technology Stack Matrix
+---
 
-| Layer | Component | Version / Library | Purpose |
+## 3. Detailed Subsystem Architectures
+
+### 3.1 Frontend Architecture
+- **Framework & Tooling**: Built with **React 19** and **Vite 8**, styled using **Tailwind CSS v3** and **Lucide React** icons.
+- **State Management & Routing**: Uses React local component state and centralized Axios client (`frontend/src/services/api.js`). Routing is primarily controlled through tab switching inside `DashboardShell.jsx` rather than `react-router-dom` page routing.
+- **Key Views**:
+  - `SimpleGuidedStoryMode.jsx`: Guided step-by-step walkthrough of the Mumbai-Delhi-Agra Golden Triangle disruption.
+  - `RecoveryPlanPage.jsx`: Visualizes Google OR-Tools optimization results, candidate alternatives, and action execution logs.
+  - `JourneyGraphView.jsx`: Visual representation of NetworkX nodes (airports, stations, hotels) and edges (flight, train, cab).
+  - `PolicyAssistantChat.jsx`: Interactive chat interface communicating with `/api/v1/policy-chat` or `/api/chat`.
+  - `InboxView.jsx`: Travel booking email parser with sample email injection.
+- **Architectural Issues & Debt**:
+  - Orphaned components: `TravelNewsView.jsx` and `KafkaEventStreamView.jsx` exist in the components folder but are not connected to the main tab navigation.
+  - Template remnants: `main.ts`, `counter.ts`, and `style.css` exist alongside `main.jsx`, `App.jsx`, and `index.css`.
+  - `tests/frontend/` is completely empty (zero automated frontend tests).
+
+### 3.2 Backend Architecture
+- **Framework**: **FastAPI 0.115.8** running under **Uvicorn 0.34.0**.
+- **Module Structure**: Located under `backend/app/modules/`:
+  - `journeys/`: NetworkX directed graph builder and connection buffer evaluator.
+  - `disruptions/`: Disruption simulation engine and rule-based impact cascade agent.
+  - `optimization/`: Google OR-Tools CP-SAT 0-1 Integer Linear Programming solver.
+  - `ai_agents/`: LangGraph 8-node state machine workflow (`recovery_graph.py`).
+  - `policies/`: Hybrid BM25 + FAISS policy retrieval and Gemini/heuristic question answering.
+  - `suppliers/`: Adapter pattern translating domain interfaces to mock REST APIs.
+  - `events/`: In-memory Kafka broker simulator with partitioned queues, retries, and dead-letter topics.
+  - `news/`: Google News RSS feed parser with 15-minute memory caching.
+  - `ingestion/`: Travel confirmation email parser (regex heuristic with fallback to Gemini).
+- **API Architecture & Routing**:
+  - Primary API router mounted at `/api/v1` (`backend/app/api/v1/api.py`).
+  - Redundant route mounting: `api_router` is mounted at `/api/v1`, while `news` and `policy_chat` are mounted at `/api`, and `api_router` plus `suppliers` are mounted at `/` root. This causes duplicate route registration.
+
+### 3.3 Machine Learning & Weather Intelligence Architecture
+- **Status: IMPLEMENTED & OPERATIONAL (Stages 2 & 3)**
+- **Datasets**: Real BTS `nycflights13` flight dataset (327,346 valid records) + NOAA ASOS surface observations (26,115 records) stored in `data/flights/`.
+- **Weather Architecture (`backend/app/modules/weather/`)**:
+  - `WeatherProvider` abstract base class defining unified interface.
+  - `HistoricalWeatherProvider`: Exact `(origin, year, month, day, hour)` indexing on historical NOAA ASOS data (99.53% match rate).
+  - `LiveWeatherProvider`: Real-time Open-Meteo REST API with airport geocoding, 10-minute in-memory TTL caching, and 4.0s timeout safeguard.
+  - `MockWeatherProvider`: Calibrated zero-network fallback with presets (`CLEAR`, `FOG`, `THUNDERSTORM`, `WINTER_STORM`).
+  - `WeatherService`: Orchestrates priority resolution and graceful fallback.
+- **Feature Pipeline (`backend/app/ml/feature_pipeline.py`)**:
+  - `FlightFeatureTransformer`: Extracts 27 total features including 11 meteorological features (`temp`, `dewp`, `humid`, `wind_speed`, `precip`, `pressure`, `visib`, and operational flags `is_fog`, `is_high_wind`, `is_freezing`, `has_precip`).
+  - Strict leakage prevention: Weather is matched solely on origin airport and scheduled departure hour. Lookahead features (`dep_delay`, actual departure times) are strictly excluded.
+  - Graceful fallback: If weather is missing or offline at inference time, training-partition medians are imputed with zero crashes.
+- **Models & Serialized Artifacts (`backend/app/ml/artifacts/`)**:
+  - Trained on 244,737 flights (Jan–Sep 2013), evaluated out-of-time on 82,609 flights (Oct–Dec 2013).
+  - Evaluated: Dummy Baseline, Logistic Regression, Random Forest (100 trees), XGBoost (150 trees).
+  - Best Model: Random Forest Classifier achieving **0.6929 ROC-AUC** (+7.02 points boost from weather integration over schedule-only baseline 0.6227).
+- **Inference Predictor (`backend/app/ml/predictor.py`)**:
+  - `FlightDelayPredictor`: Auto-enriches predictions with real-time/historical weather, calculates delay probabilities and risk levels, and returns `weather_intelligence` audit trails.
+- **REST Endpoints**:
+  - `POST /api/v1/predict/flight-delay`
+  - `GET /api/v1/predict/model-info`
+  - `GET /api/v1/weather/observation`
+  - `GET /api/v1/weather/supported-airports`
+
+### 3.4 Retrieval-Augmented Generation (RAG) Architecture
+- **Knowledge Base**: 9 raw documents in `data/policies/raw/`:
+  - Indian Regulations: DGCA CAR Section 3 Series M Part IV, DGCA Passenger Charter.
+  - International: EU Regulation 261/2004, UK CAA UK261, US DOT 14 CFR Part 260, Montreal Convention 1999.
+  - Airline Conditions of Carriage: Air India, IndiGo.
+- **Ingestion Pipeline** (`scripts/ingest_policies.py`):
+  - Chunks text into ~500–800 words with ~100-word overlap.
+  - Builds BM25 inverted index (`bm25_index.json`).
+  - Builds FAISS index (`policy_faiss.index`) with `IndexFlatIP`.
+- **Critical Flaw in Vector Representations**:
+  - `build_vector_representation(text)` uses an MD5 hash modulo 128 to generate a 128-dimensional bag-of-words vector instead of a genuine dense semantic embedding model (e.g., Sentence-Transformers or Gemini Embeddings).
+  - High probability of hash collisions and zero semantic awareness for synonyms or conceptual similarity.
+- **Generation & Fallback**:
+  - Attempts raw HTTP call to `gemini-1.5-flash` using `GEMINI_API_KEY`.
+  - Fallback: `_synthesize_deterministic_grounded_answer()` uses hardcoded `if "delay" in query: ... elif "baggage" in query: ...` string matching.
+
+### 3.5 Database & Persistence Architecture
+- **ORM**: SQLAlchemy 2.0 with declarative base models (`backend/app/models/models.py`).
+- **Database Engine**: Defaults to SQLite (`autonomous_recovery.db`) for local development; configured for PostgreSQL 16 via Docker Compose.
+- **Entities**:
+  - `User`: Traveler authentication.
+  - `Journey`: Top-level multi-leg itinerary.
+  - `Booking`: Individual leg booking (flight, train, bus, hotel, rental car).
+  - `JourneyNode` / `JourneyEdge`: Graph representation persisted in relational tables.
+  - `Disruption`: Captured or simulated disruption events.
+  - `RecoveryPlan`: Generated alternatives and rebooking decisions.
+  - `Notification`: Outbound alerts (Email, SMS, WebSocket).
+  - `IngestedEmail`: Raw and parsed booking confirmation emails.
+
+---
+
+## 4. Current Technology Stack Matrix
+
+| Category | Technology | Version | Purpose in AeroAI |
 | :--- | :--- | :--- | :--- |
-| **Backend Framework** | FastAPI | `0.115.8` | REST API endpoints, OpenAPI docs, WebSocket endpoints |
-| **Server / ASGI** | Uvicorn | `0.34.0` | Async server gateway interface |
-| **Data Validation** | Pydantic / Pydantic Settings | `^2.10.0` / `^2.7.0` | Schema validation and configuration management |
-| **Database ORM** | SQLAlchemy | `2.0.38` | Relational ORM mapping for Journeys, Bookings, Disruptions |
-| **Database Engine** | SQLite (dev) / PostgreSQL (docker) | `3.x` / `16-alpine` | Relational persistence |
-| **Graph Modeling** | NetworkX | `3.4.2` | Directed Acyclic Graph (`nx.DiGraph`) modeling itinerary legs and connection buffers |
-| **Mathematical Optimization** | Google OR-Tools CP-SAT | `9.15.6755` | 0-1 Integer Linear Programming solver for rebooking selection |
-| **Agent Orchestration** | LangGraph / LangChain Core | `1.2.15` / `1.6.10` | 8-node state machine for post-disruption execution |
-| **Vector Search** | FAISS-cpu | `^1.15.1` | IndexFlatIP nearest-neighbor vector search |
-| **Document Ingestion** | BeautifulSoup4 / PyPDF | `^4.12.0` / `^5.0.0` | HTML / PDF extraction for airline carriage and passenger rights policies |
-| **Feed Parser** | feedparser | `^6.0.10` | Google News RSS feed aggregation |
-| **Frontend Framework** | React / Vite | `18.x` / `8.3.4` | Single Page Application (SPA) dashboard |
-| **Styling & Icons** | Tailwind CSS / Lucide React | `3.4.x` / `^1.16.0` | Dark-themed UI components and icon sets |
-| **Containerization** | Docker / Docker Compose | Compose v2 | Multi-container setup (Postgres, Kafka KRaft, Backend, Frontend) |
+| **Backend Framework** | FastAPI | `0.115.8` | REST API, OpenAPI docs, WebSocket connections |
+| **ASGI Web Server** | Uvicorn | `0.34.0` | Asynchronous application server |
+| **Data Validation** | Pydantic / Settings | `^2.10.0` / `^2.7.0` | Strict schema validation & environment config |
+| **Database ORM** | SQLAlchemy | `2.0.38` | Relational ORM mapping |
+| **Database Engines** | SQLite / PostgreSQL | `3.x` / `16-alpine` | Local file dev DB / Docker production DB |
+| **Graph Modeling** | NetworkX | `3.4.2` | Directed Acyclic Graph (`nx.DiGraph`) for connection buffers |
+| **Constraint Solver** | Google OR-Tools CP-SAT | `9.15.6755` | 0-1 Integer Linear Programming solver for rebooking |
+| **Agent Framework** | LangGraph / LangChain | `1.2.15` / `1.6.10` | 8-node state machine workflow for recovery execution |
+| **Vector Search** | FAISS-cpu | `^1.15.1` | Flat inner-product index on 128-dim hash vectors |
+| **Document Ingestion** | PyPDF / BeautifulSoup4 | `^5.0.0` / `^4.12.0` | PDF and HTML policy parsing |
+| **News Ingestion** | feedparser / httpx | `^6.0.10` / `0.28.1` | Google News RSS feed extraction |
+| **Frontend Framework** | React / Vite | `19.3.0` / `8.3.4` | Single Page Application dashboard |
+| **Frontend Styling** | Tailwind CSS / Lucide | `3.4.17` / `1.55.0` | Dark-mode styling and UI icon library |
+| **Testing** | Pytest / Pytest-Asyncio | `8.3.4` / `0.25.3` | Backend integration, unit, and E2E test suites |
+| **Containerization** | Docker / Docker Compose | v2 Compose | Multi-container setup (Postgres, Kafka KRaft, Frontend, Backend) |
 
 ---
 
-## 3. Subsystem Breakdown: Real vs. Mock vs. Synthetic
+## 5. Current Data Flow
 
-| Subsystem | Classification | Implementation Reality | Gaps & Evaluation |
-| :--- | :---: | :--- | :--- |
-| **Flight Delay Prediction** | **MISSING** | Non-existent. Delays are hardcoded (e.g. `240` minutes) or manually inputted into `/disruptions/simulate`. | Needs real aviation training dataset (BTS/Kaggle), baseline/RF/XGBoost comparison, and SHAP explainability. |
-| **Weather Information** | **MISSING** | String enum value only. No meteorological observations or forecasts. | Needs `WeatherProvider` interface with historical and live weather capabilities. |
-| **Flight Inventory & Status** | **MOCK / SIMULATED** | Static in-memory Python dictionaries (`mock-suppliers/datasets.py`). No real-time aviation API integration. | Needs `FlightProvider` abstraction with `MockFlightProvider` fallback and real flight provider (`OpenSkyFlightProvider`). |
-| **Journey Dependency Graph** | **REAL** | `networkx.DiGraph` computing connection time gaps and buffer erosion (`SAFE`, `TIGHT`, `IMPOSSIBLE`). | Solid algorithmic foundation; handles multi-hop cascades. |
-| **Recovery Optimization** | **REAL** | Google OR-Tools CP-SAT formulation with 6 configurable objective weights and constraints. | Functioning mathematical solver, but only operates after a disruption is manually triggered. |
-| **8-Node Recovery Workflow** | **REAL** | LangGraph `StateGraph(RecoveryAgentState)` with verification and retry loops. | Works for executing alternative bookings, but is NOT a conversational agent and cannot answer user queries. |
-| **Policy Ingestion & Retrieval** | **MIXED** | Real policy documents parsed from PDF/HTML into chunks; hybrid BM25 search. | Dense vector retrieval uses an MD5 hash trick instead of real embeddings. |
-| **Policy Answer Generation** | **MIXED** | Calls Gemini API if `GEMINI_API_KEY` is present; falls back to hardcoded regex/keyword strings. | Vulnerable to heuristic failure on queries outside hardcoded keywords; lacks benchmarked RAG evaluation. |
-| **Travel News Feed** | **REAL** | Fetches live Google News RSS items via `feedparser`. | Functional external API integration with in-memory TTL caching. |
-| **Kafka Event Broker** | **SIMULATED** | Embedded in-process event pipeline with fallback when local Kafka broker is absent. | Great for zero-config testing; Docker compose configures real KRaft Kafka broker. |
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Traveler / Operator
+    participant FE as React Frontend
+    participant API as FastAPI Gateway
+    participant Ingest as Ingestion Service
+    participant Graph as Journey Graph Engine
+    participant Disrupt as Disruption Simulator
+    participant LangGraph as LangGraph 8-Node Agent
+    participant ORTools as OR-Tools Optimizer
+    participant Adapter as Supplier Adapter
+    participant MockGDS as Mock Supplier API
 
----
+    User->>FE: Pastes booking email / selects sample
+    FE->>API: POST /api/v1/ingestion/parse
+    API->>Ingest: Parse booking data (Heuristic / Gemini)
+    Ingest-->>API: Extracted Booking details
+    API->>Graph: Build/Update Journey Graph (NetworkX)
+    Graph-->>FE: Render Graph Nodes & Buffer Edges
 
-## 4. End-to-End Data & Processing Flows
+    User->>FE: Triggers Disruption (e.g. 240 min delay)
+    FE->>API: POST /api/v1/disruptions/simulate
+    API->>Disrupt: Update Booking & propagate graph impact
+    Disrupt-->>FE: Return cascade impact (Critical severity)
 
-### 4.1 Current Disruption Recovery Flow
-```
-User / Test Runner
-   ↓ (POST /api/v1/recovery/demo/golden-triangle or /disruptions/simulate)
-Disruption Simulator Engine
-   ↓ (updates Booking status to DELAYED, extends end_time)
-NetworkX Journey Graph Engine
-   ↓ (recalculates connection buffers: Delhi flight-to-train gap drops from +90m to -150m IMPOSSIBLE)
-Impact Analysis Agent
-   ↓ (flags Train 12015-SHT as MISSED_CONNECTION, Hotel as SCHEDULE_THREATENED)
-Candidate Alternative Search
-   ↓ (queries mock supplier dataset for trains departing Delhi after revised arrival)
-Google OR-Tools CP-SAT Solver
-   ↓ (selects Train TRN124 17:30->21:00, meeting hotel check-in cutoff < 22:00)
-8-Node LangGraph Coordinator
-   ↓ (validates confidence 0.94, executes rebooking, hotel modification, refund via Mock Adapters)
-Notification Agent
-   ↓ (generates 6 templated notifications, stores in-memory)
-```
-
-### 4.2 Current Policy RAG Flow
-```
-User Query ("What compensation do I get for a 4-hour delay?")
-   ↓ (POST /api/chat)
-PolicyRAGService.answer_question()
-   ↓
-Query Rewrite & Active Journey Context Extraction
-   ↓
-Hybrid Search:
-   ├── BM25 Keyword Scoring (Robertson-Spärck Jones IDF over inverted index)
-   └── FAISS Inner Product Search (Query converted via MD5 character-hash modulo 128)
-   ↓
-Reciprocal Rank Fusion (RRF) Re-ranking
-   ↓
-Answer Synthesis:
-   ├── IF GEMINI_API_KEY available: Prompt sent to Gemini 2.5 Flash
-   └── ELSE: Deterministic heuristic string matcher:
-             `if any(w in q_lower for w in ["delay", "delayed", ...]): return hardcoded text`
+    User->>FE: Clicks "Solve with AI"
+    FE->>API: POST /api/v1/recovery/execute
+    API->>LangGraph: Initiate 8-Node State Machine
+    LangGraph->>ORTools: Formulate CP-SAT model & solve
+    ORTools-->>LangGraph: Optimal alternative (Train B + Hotel)
+    LangGraph->>Adapter: Execute rebooking
+    Adapter->>MockGDS: Search & Book via Mock REST APIs
+    MockGDS-->>Adapter: Confirmation & new reference number
+    Adapter-->>LangGraph: Execution receipt
+    LangGraph-->>FE: Complete execution trace & verified status
 ```
 
 ---
 
-## 5. Security & Configuration Audit
+## 6. Architecture Evolution & Completed Upgrades
 
-1. **Hardcoded Secrets**:
-   - `backend/app/core/config.py` contains a hardcoded fallback:
-     `SECRET_KEY: str = "super-secret-dev-key-change-in-production-1234567890"`
-   - `backend/.env` contains the same default key.
-   - `docker-compose.yml` uses hardcoded default database credentials (`postgres:postgres`).
-2. **CORS Policy**:
-   - In `backend/app/main.py`:
-     ```python
-     allow_origins=settings.BACKEND_CORS_ORIGINS if settings.BACKEND_CORS_ORIGINS else ["*"]
-     ```
-     If `BACKEND_CORS_ORIGINS` is unset, it defaults to wildcard `["*"]` with `allow_credentials=True`, which is an insecure configuration.
-3. **API Key Exposure**:
-   - `GEMINI_API_KEY` is read from environment variables; no raw API keys are committed to Git, but `.env.example` should clearly document how to configure it.
-4. **JWT & Session Security**:
-   - JWT tokens are stored in the browser's `localStorage` (`adr_access_token`), vulnerable to XSS if malicious scripts are injected.
+With the completion of Stages 1 through 7, AeroAI has evolved from an isolated demonstration into a production-grade aviation intelligence and autonomous disruption recovery system:
+
+1. **Real Flight Data & ML Delay Prediction (Stage 2 & 4)**: Trained Random Forest & XGBoost models on real U.S. DOT BTS flight records (ROC-AUC: 0.6929, Recall: 80.5%).
+2. **Weather Intelligence Integration (Stage 3)**: Unified `WeatherProvider` abstraction with `HistoricalWeatherProvider` (26,112 NOAA/ASOS hourly records), `LiveWeatherProvider` (Open-Meteo), and `MockWeatherProvider`.
+3. **SHAP Feature Explainability (Stage 4)**: Integrated TreeSHAP local attributions framed non-causally ("These features contributed most to the model's prediction").
+4. **Authoritative Policy RAG (Stage 5 & 6)**: Dense neural vector search using persistent FAISS + BM25 inverted index + Reciprocal Rank Fusion over DGCA CAR Series M Part IV, EU Regulation 261/2004, US DOT 14 CFR 260, and carrier Conditions of Carriage. Refusal gate with 100% out-of-scope refusal accuracy and 97.1% groundedness.
+5. **Flight Provider Abstraction (Stage 6)**: `FlightProvider` abstraction linking `RealFlightProvider` (OpenSky Network ADS-B telemetry + Aviationstack REST API) and `MockFlightProvider` fallback, with strict provenance labels (`LIVE`, `MOCK`, `PREDICTED`).
+6. **AeroAI Unified AI Agent (Stage 7)**: Integrated conversational assistant coordinating all 5 capabilities through dynamic, selective routing and calibrated uncertainty boundaries.
 
 ---
 
-## 6. Codebase Health, Redundancies & Dead Code
+## 7. Stage 7: AeroAI Unified AI Agent Architecture
 
-1. **Unused Boilerplate Files**:
-   - `frontend/src/main.ts` (Vite template counter and HTML string injection, unused because `index.html` loads `main.jsx`).
-   - `frontend/src/counter.ts` (Vite starter counter, completely unused).
-   - `frontend/src/style.css` (Vite starter CSS, unused because `index.css` is imported).
-   - `services/` (Empty root directory).
-   - `tests/frontend/` (Empty test directory).
-   - `backend/app/modules/ai_agents/agent_stub.py` (Unused 19-line placeholder class `AgentRecoveryEngineStub`).
-2. **Duplicate Code & Datasets**:
-   - `mock-suppliers/datasets.py` and `backend/app/datasets/mock_datasets.py` contain duplicate flight/train/hotel mock lists.
-   - Root `autonomous_recovery.db` (106 KB) and `backend/autonomous_recovery.db` (94 KB) represent duplicate SQLite databases resulting from running the application from different working directories.
-3. **Environment & Path Friction**:
-   - Pytest fails with `ModuleNotFoundError: No module named 'app'` unless `$env:PYTHONPATH="$PWD\backend"` is manually set before running. A `pytest.ini` or `pyproject.toml` configuration is needed to make test execution seamless.
+The **AeroAI Unified AI Agent** (`backend/app/modules/ai_agents/unified_agent.py`) connects all core capabilities into an integrated intelligence layer.
 
----
+```mermaid
+flowchart TD
+    UserQuery["User Request / Context"] --> Router["AgentIntentRouter (router.py)"]
+    Router -->|Determines Necessary Tools| ToolSelector{"Selective Tool Execution"}
 
-## 7. Gap Analysis Against Target TripWeave AI Platform
+    ToolSelector -->|Search Intent| T1["Flight Search Tool (flights.py)"]
+    ToolSelector -->|Status / Tracking| T2["Flight Status Tool (flights.py)"]
+    ToolSelector -->|Meteorological Query| T3["Weather Tool (weather/service.py)"]
+    ToolSelector -->|Disruption Risk| T4["Delay Prediction Tool (ml/predictor.py)"]
+    ToolSelector -->|Passenger Rights / Rules| T5["Policy RAG Tool (policies/policy_rag_service.py)"]
 
-| Requirement | Current State | Required Target State |
-| :--- | :--- | :--- |
-| **1. Flight Delay Prediction** | Non-existent | Real aviation dataset (BTS/Kaggle), clean pre-flight feature engineering, leakage prevention, baseline/RF/XGBoost models. |
-| **2. Weather Integration** | Non-existent | `WeatherProvider` interface with historical and live weather data. |
-| **3. Model Training & Evaluation** | Non-existent | Time-based data split, ROC-AUC, Precision, Recall, F1, PR-AUC, confusion matrix, documented in `reports/model_evaluation.md`. |
-| **4. Explainability** | Non-existent | SHAP feature contribution analysis; clear distinction between statistical attribution and causality. |
-| **5. Policy RAG System** | Hash-projection pseudo-embeddings + heuristic string matching fallback | True dense embeddings, citation attribution, refusal when evidence is missing. |
-| **6. RAG Evaluation** | Non-existent | 30+ curated question benchmark (`evaluation/rag_questions.json`), retrieval relevance, groundedness, reported in `reports/rag_evaluation.md`. |
-| **7. Real Flight Data Provider** | In-memory mock list | `FlightProvider` abstraction supporting `MockFlightProvider` and real aviation provider (`OpenSkyFlightProvider`). |
-| **8. Unified AI Agent** | Disconnected recovery LangGraph (post-disruption only) | Unified `TripWeave Agent` dynamically selecting Flight Tool, Weather Tool, Delay Prediction Tool, and Policy RAG Tool based on intent. |
-| **9. Grounded Evidence Response** | Separate endpoints | Unified response separating ML Prediction, Live Status, Weather, Policy Citations, and LLM Recommendations. |
-| **10. Architecture & Documentation** | AeroAI disruption recovery demo | TripWeave AI agentic flight intelligence platform with production documentation. |
+    T1 --> Formatter["Response Formatter (formatter.py)"]
+    T2 --> Formatter
+    T3 --> Formatter
+    T4 --> Formatter
+    T5 --> Formatter
 
----
+    Formatter --> Sanitizer["Audit Logger (logger.py)"]
+    Sanitizer --> AuditFile[("agent_audit.jsonl")]
+    Formatter --> FinalResponse["Structured Response (Separated Sections)"]
+```
 
-## 8. Summary & Transition to Stage 1
+### 1. The 5 Available Tools
 
-The repository has strong foundations in event-driven recovery, graph traversal, and mathematical constraint satisfaction. The next step is executing **Stage 1 (Real Flight Delay Data)** to build the machine learning backbone without breaking the existing graph and optimization engines.
+| Tool | Interface | Underlying Implementation | Provenance Tag |
+| :--- | :--- | :--- | :---: |
+| **Flight Search** | `FlightSearchTool` | `flight_service.search_flights(origin, dest, min_seats)` | `LIVE` or `MOCK` |
+| **Flight Status** | `FlightStatusTool` | `flight_service.get_flight_status(flight_number, date)` | `LIVE` or `MOCK` |
+| **Weather** | `WeatherTool` | `weather_service.get_weather(airport_code, time)` | `LIVE`, `HISTORICAL`, or `MOCK` |
+| **Delay Prediction** | `FlightDelayPredictionTool` | `delay_predictor.predict(carrier, orig, dest, dep_time)` | `PREDICTED` |
+| **Policy RAG** | `PolicyRAGTool` | `policy_rag_service.answer_question(message, airline)` | `AUTHORITATIVE_POLICY` |
+
+### 2. Selective Intent Routing Rules
+The agent evaluates incoming messages and context to determine necessary tools, enforcing the rule **Do NOT call every tool for every request**:
+- **"Will my flight be delayed?"** $\rightarrow$ `flight_status` + `weather` + `delay_prediction`
+- **"If my flight is delayed by 4 hours, can I get a refund?"** $\rightarrow$ `policy_rag` (Disambiguated from operational delay prediction)
+- **"My flight tomorrow has a high delay risk. What should I do?"** $\rightarrow$ `flight_status` + `weather` + `delay_prediction` + `policy_rag`
+- **"Find flights from DEL to BOM"** $\rightarrow$ `flight_search` (+ `policy_rag` if rebooking terms are queried)
+
+### 3. Response Structure & Separation
+Responses strictly separate discrete operational dimensions:
+```text
+Delay probability: {pct}% ({prediction_label})
+
+Model factors:
+- {feature}: {impact}
+(Non-causal note: These features contributed most to the model's prediction...)
+
+Current flight status:
+- Flight: {fn} ({carrier})
+- Route: {origin} -> {dest}
+- Operational status: {status} ({delay_minutes} min delay)
+- Data source: {LIVE or MOCK}
+
+Weather:
+- Airport {code}: {temp}°C, {condition}, Wind {wind} m/s, Visibility {vis}m ({data_source})
+
+Relevant policy:
+{grounded answer}
+Authoritative Citations: {regulatory documents & sections}
+
+Recommendation:
+- {calibrated operational and statutory advice}
+```
+
+### 4. Integrity, Failure Isolation & Audit Logging
+- **Anti-Hallucination Boundaries**: Never fabricates flight records, weather, or policies. When flights or weather are missing, the agent explicitly discloses missing data (`not_found` or `unavailable`).
+- **Resilient Execution**: Each tool executes within an isolated failure boundary. If a tool raises a timeout or upstream error, the agent logs the failure, notes the unavailability in the response, and continues serving the remaining tools.
+- **Security Audit Logger**: Records user query, selected tools, execution timings, and failures into in-memory queues and `logs/agent_audit.jsonl`. Automatically scrubs API keys, Bearer tokens, passwords, and sensitive credentials with `[REDACTED]`.
+

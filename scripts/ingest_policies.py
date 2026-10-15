@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """
-Official Airline Policy Ingestion Pipeline.
+Official Airline Policy Ingestion Pipeline (Enhanced Stage 5 RAG).
 
-1. Parses raw policy documents from data/policies/raw/ (PDF, HTML, Text).
-2. Cleans extraneous headers, footers, and HTML noise.
-3. Chunks text into ~500-800 token sections with ~100 token overlap.
-4. Attaches rich metadata to each chunk:
-   - airline / regulator
-   - region (India, EU, UK, USA, International)
-   - document title
-   - source URL
-   - page number / section title
-   - effective date
-5. Creates persistent vector embeddings and BM25 index on disk for hybrid search.
-6. Idempotent: tracks SHA-256 hashes in data/policies/ingestion_manifest.json
-   so that re-running only processes new or modified files.
+1. Parses raw policy documents from data/policies/raw/ (Text, HTML, PDF).
+2. Performs section-aware semantic chunking on regulatory articles and clauses.
+3. Attaches rich metadata:
+   - document title, publisher, regulator, region, airline
+   - section title & clause headings
+   - source URL & effective date
+4. Trains and computes dense Latent Semantic Analysis (LSA) continuous embeddings (64-dim).
+5. Builds persistent FAISS IndexFlatIP (cosine similarity) and BM25 inverted index on disk.
+6. Saves embedding model to data/policies/vector_store/embedding_model.joblib.
+7. Tracks SHA-256 hashes for idempotency.
 """
 
 import os
@@ -24,7 +21,7 @@ import json
 import math
 import hashlib
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 import pypdf
@@ -35,16 +32,20 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
-# Resolve workspace paths
 BASE_DIR = Path(__file__).resolve().parent.parent
+BACKEND_DIR = BASE_DIR / "backend"
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
 RAW_DIR = BASE_DIR / "data" / "policies" / "raw"
 VECTOR_DIR = BASE_DIR / "data" / "policies" / "vector_store"
 SOURCES_MANIFEST_PATH = BASE_DIR / "data" / "policies" / "sources.json"
 INGESTION_MANIFEST_PATH = BASE_DIR / "data" / "policies" / "ingestion_manifest.json"
-CHROMA_DB_DIR = BASE_DIR / "data" / "policies" / "chroma_db"
 
 VECTOR_DIR.mkdir(parents=True, exist_ok=True)
-CHROMA_DB_DIR.mkdir(parents=True, exist_ok=True)
+
+from app.modules.policies.embedding_model import SemanticEmbeddingModel
+
 
 def compute_file_sha256(filepath: Path) -> str:
     """Compute SHA-256 hash of a file for idempotency checking."""
@@ -54,152 +55,173 @@ def compute_file_sha256(filepath: Path) -> str:
             hasher.update(chunk)
     return hasher.hexdigest()
 
+
 def clean_text(text: str) -> str:
-    """Clean headers, footers, excessive whitespace, and special characters."""
+    """Clean extraneous headers, whitespace, and formatting artifacts."""
     if not text:
         return ""
-    # Normalize unicode spaces
     text = text.replace("\u00a0", " ").replace("\r\n", "\n").replace("\r", "\n")
-    # Remove repetitive page numbers or header boilerplate lines
     lines = []
     for line in text.split("\n"):
         stripped = line.strip()
-        # Drop standalone page numbers like "Page 1 of 12" or "--- 1 ---"
-        if re.match(r"^(?:page\s*\d+(?:\s*(?:of|\/)\s*\d+)?|\d+|[-=_\s]{3,})$", stripped, re.IGNORECASE):
+        # Drop standalone page numbers or separator lines
+        if re.match(r"^(?:page\s*\d+(?:\s*(?:of|\/)\s*\d+)?|\d+|[-=_\s]{4,})$", stripped, re.IGNORECASE):
             continue
         lines.append(line)
     cleaned = "\n".join(lines)
-    # Collapse multiple blank lines
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     return cleaned.strip()
 
-def parse_pdf(filepath: Path) -> List[Dict[str, Any]]:
-    """Extract text from PDF page by page."""
-    pages_data = []
-    try:
-        reader = pypdf.PdfReader(str(filepath))
-        for page_idx, page in enumerate(reader.pages):
-            raw_text = page.extract_text() or ""
-            cleaned = clean_text(raw_text)
-            if cleaned:
-                pages_data.append({
-                    "page_number": page_idx + 1,
-                    "text": cleaned
-                })
-    except Exception as e:
-        print(f"  [ERROR] pypdf parsing failed for {filepath.name}: {e}")
-    return pages_data
 
-def parse_html(filepath: Path) -> List[Dict[str, Any]]:
-    """Parse HTML content, extracting semantic text and headings."""
-    pages_data = []
-    try:
+def parse_document_text(filepath: Path) -> str:
+    """Extracts raw text based on file format with HTML/PDF cleanup."""
+    suffix = filepath.suffix.lower()
+    if suffix in [".txt", ".md"]:
         with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-            html_content = f.read()
-        soup = BeautifulSoup(html_content, "html.parser")
-        
-        # Remove scripts, styles, navbars, footers
+            return clean_text(f.read())
+    elif suffix in [".html", ".htm"]:
+        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+            soup = BeautifulSoup(f.read(), "html.parser")
         for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
             tag.decompose()
+        return clean_text(soup.get_text(separator="\n"))
+    elif suffix == ".pdf":
+        text_parts = []
+        try:
+            reader = pypdf.PdfReader(str(filepath))
+            for page in reader.pages:
+                t = page.extract_text() or ""
+                if t:
+                    text_parts.append(t)
+        except Exception as e:
+            print(f"  [PDF ERROR] {filepath.name}: {e}")
+        return clean_text("\n\n".join(text_parts))
+    return ""
 
-        text = soup.get_text(separator="\n")
-        cleaned = clean_text(text)
-        if cleaned:
-            pages_data.append({
-                "page_number": 1,
-                "text": cleaned
-            })
-    except Exception as e:
-        print(f"  [ERROR] HTML parsing failed for {filepath.name}: {e}")
-    return pages_data
 
-def parse_text(filepath: Path) -> List[Dict[str, Any]]:
-    """Parse plain text policy document."""
-    try:
-        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-            content = f.read()
-        cleaned = clean_text(content)
-        if cleaned:
-            return [{"page_number": 1, "text": cleaned}]
-    except Exception as e:
-        print(f"  [ERROR] Text parsing failed for {filepath.name}: {e}")
-    return []
+def extract_header_metadata(full_text: str) -> Dict[str, str]:
+    """Extracts explicit metadata block if present at top of document."""
+    meta = {}
+    lines = full_text.split("\n")
+    for line in lines[:15]:
+        line_clean = line.strip()
+        if line_clean.startswith("OFFICIAL POLICY DOCUMENT:"):
+            meta["title"] = line_clean.replace("OFFICIAL POLICY DOCUMENT:", "").strip()
+        elif line_clean.startswith("PUBLISHER:"):
+            meta["publisher"] = line_clean.replace("PUBLISHER:", "").strip()
+        elif line_clean.startswith("REGULATOR/AIRLINE:"):
+            meta["regulator"] = line_clean.replace("REGULATOR/AIRLINE:", "").strip()
+        elif line_clean.startswith("REGION:"):
+            meta["region"] = line_clean.replace("REGION:", "").strip()
+        elif line_clean.startswith("OFFICIAL URL:"):
+            meta["source_url"] = line_clean.replace("OFFICIAL URL:", "").strip()
+        elif line_clean.startswith("EFFECTIVE DATE:"):
+            meta["effective_date"] = line_clean.replace("EFFECTIVE DATE:", "").strip()
+    return meta
 
-def extract_section_title(text_block: str) -> str:
-    """Find the most relevant section heading from the beginning of a chunk."""
-    lines = [l.strip() for l in text_block.split("\n") if l.strip()]
-    for line in lines[:3]:
-        # Headings often start with digits, uppercase, or Roman numerals
-        if re.match(r"^(?:[0-9IVX]+\.|\bSECTION\b|\bARTICLE\b|\bPART\b|[A-Z\s]{4,})", line):
-            return line[:100]
-    return lines[0][:80] if lines else "General Policy Section"
 
-def chunk_text(
-    text: str,
-    target_tokens: int = 650,
-    overlap_tokens: int = 100
-) -> List[str]:
+def chunk_document_by_sections(
+    doc_id: str,
+    full_text: str,
+    meta_lookup: Dict[str, Any],
+    filepath: Path,
+) -> List[Dict[str, Any]]:
     """
-    Chunks text into ~500-800 token segments with ~100 token overlap.
-    Approximates tokens as words (~1 token ~ 0.75 words, so 650 tokens ~ 500 words).
-    Respects paragraph and sentence boundaries.
+    Performs section-aware semantic chunking.
+    Splits along numbered articles/sections (e.g. '1. DENIED BOARDING', '2. CANCELLATION')
+    so each clause is stored as an independent semantic search target.
     """
-    target_words = int(target_tokens * 0.75)
-    overlap_words = int(overlap_tokens * 0.75)
+    extracted_meta = extract_header_metadata(full_text)
+    doc_meta = meta_lookup.get(filepath.name, {}) or meta_lookup.get(filepath.stem, {})
 
-    paragraphs = text.split("\n\n")
-    chunks: List[str] = []
-    current_words: List[str] = []
+    title = extracted_meta.get("title") or doc_meta.get("title") or filepath.stem.replace("_", " ").title()
+    publisher = extracted_meta.get("publisher") or doc_meta.get("publisher", "Civil Aviation Authority")
+    regulator = extracted_meta.get("regulator") or doc_meta.get("regulator", "Civil Aviation Authority")
+    region = extracted_meta.get("region") or doc_meta.get("region", "Global")
+    airline = doc_meta.get("airline", "All Airlines")
+    source_url = extracted_meta.get("source_url") or doc_meta.get("url", "https://www.dgca.gov.in")
+    effective_date = extracted_meta.get("effective_date") or doc_meta.get("effective_date", "Current")
 
-    for para in paragraphs:
-        p_words = para.split()
-        if not p_words:
-            continue
+    # Strip header metadata lines to avoid repetitive noise
+    body_lines = []
+    in_header = True
+    for line in full_text.split("\n"):
+        if in_header:
+            if any(line.strip().startswith(prefix) for prefix in [
+                "OFFICIAL POLICY DOCUMENT:", "PUBLISHER:", "REGULATOR/AIRLINE:",
+                "REGION:", "OFFICIAL URL:", "EFFECTIVE DATE:", "VERIFIED SOURCE STATUS:"
+            ]):
+                continue
+            if not line.strip():
+                continue
+            in_header = False
+        body_lines.append(line)
+    body_text = "\n".join(body_lines).strip()
 
-        if len(current_words) + len(p_words) <= target_words:
-            current_words.extend(p_words)
+    # Split on numbered section headers e.g. "1. DENIED BOARDING", "2. CANCELLATION OF FLIGHTS"
+    section_pattern = r"(?m)(?=^[0-9]+\.\s+[A-Z])"
+    raw_sections = re.split(section_pattern, body_text)
+
+    # Filter empty sections
+    sections = [s.strip() for s in raw_sections if s.strip()]
+    if not sections:
+        sections = [body_text]
+
+    chunks = []
+    for s_idx, sec in enumerate(sections):
+        lines = sec.split("\n")
+        first_line = lines[0].strip()
+
+        # Identify section title
+        if re.match(r"^[0-9]+\.\s+", first_line):
+            sec_title = first_line.rstrip(":").strip()
         else:
-            if current_words:
-                chunks.append(" ".join(current_words))
-                # Retain overlap from end of current chunk
-                current_words = current_words[-overlap_words:] + p_words
-            else:
-                # If a single paragraph is longer than target, slice it
-                for i in range(0, len(p_words), target_words - overlap_words):
-                    sub = p_words[i:i + target_words]
-                    chunks.append(" ".join(sub))
-                current_words = []
+            sec_title = first_line[:70].strip() or f"Section {s_idx + 1}"
 
-    if current_words:
-        chunks.append(" ".join(current_words))
+        # If a single section is very long (> 500 words), sub-chunk by paragraph
+        words = sec.split()
+        if len(words) > 500:
+            sub_chunks = []
+            current = []
+            for p in sec.split("\n\n"):
+                p_w = p.split()
+                if len(current) + len(p_w) <= 350:
+                    current.extend(p_w)
+                else:
+                    if current:
+                        sub_chunks.append(" ".join(current))
+                    current = p_w[-50:] + p_w
+            if current:
+                sub_chunks.append(" ".join(current))
+        else:
+            sub_chunks = [sec]
+
+        for sub_idx, sub_content in enumerate(sub_chunks):
+            cid = f"{doc_id}_s{s_idx + 1}"
+            if len(sub_chunks) > 1:
+                cid += f"_p{sub_idx + 1}"
+
+            chunks.append({
+                "chunk_id": cid,
+                "document_title": title,
+                "publisher": publisher,
+                "regulator": regulator,
+                "region": region,
+                "airline": airline,
+                "section_title": sec_title,
+                "page_number": s_idx + 1,
+                "source_url": source_url,
+                "effective_date": effective_date,
+                "text": sub_content,
+                "token_estimate": len(sub_content.split()),
+                "file_path": str(filepath.relative_to(BASE_DIR)).replace("\\", "/")
+            })
 
     return chunks
 
-def build_vector_representation(text: str) -> List[float]:
-    """
-    Lightweight deterministic normalized embedding vector representation.
-    Ensures vector similarity runs instantaneously with zero external model overhead,
-    while sentence-transformers/ChromaDB embeddings are used when loaded.
-    """
-    # Deterministic 128-dimensional projection based on character trigram hashing
-    dim = 128
-    vec = [0.0] * dim
-    words = re.findall(r"\w+", text.lower())
-    for w in words:
-        h = int(hashlib.md5(w.encode("utf-8")).hexdigest(), 16)
-        idx = h % dim
-        vec[idx] += 1.0
-
-    # L2 normalize
-    norm = math.sqrt(sum(v * v for v in vec))
-    if norm > 0:
-        vec = [v / norm for v in vec]
-    return vec
 
 def build_bm25_index(chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Constructs an inverted BM25 index over chunk tokens for exact keyword recall.
-    """
+    """Constructs an inverted BM25 index over chunk tokens for exact keyword recall."""
     doc_freqs: Dict[str, int] = {}
     doc_lengths: List[int] = []
     inverted_index: Dict[str, List[Dict[str, Any]]] = {}
@@ -231,67 +253,16 @@ def build_bm25_index(chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
         "inverted_index": inverted_index
     }
 
-def process_document(
-    filepath: Path,
-    metadata_lookup: Dict[str, Any]
-) -> List[Dict[str, Any]]:
-    """Parse and chunk a single policy file with full metadata attachment."""
-    filename = filepath.name
-    suffix = filepath.suffix.lower()
-
-    if suffix == ".pdf":
-        pages = parse_pdf(filepath)
-    elif suffix in [".html", ".htm"]:
-        pages = parse_html(filepath)
-    elif suffix in [".txt", ".md"]:
-        pages = parse_text(filepath)
-    else:
-        print(f"  [SKIP] Unsupported file type: {filename}")
-        return []
-
-    doc_meta = metadata_lookup.get(filename, {})
-    if not doc_meta:
-        # Search by stem
-        doc_meta = metadata_lookup.get(filepath.stem, {})
-
-    chunks: List[Dict[str, Any]] = []
-
-    for p in pages:
-        page_num = p["page_number"]
-        page_text = p["text"]
-        text_chunks = chunk_text(page_text, target_tokens=650, overlap_tokens=100)
-
-        for chunk_idx, chunk_content in enumerate(text_chunks):
-            chunk_id = f"{filepath.stem}_p{page_num}_c{chunk_idx+1}"
-            section_title = extract_section_title(chunk_content)
-
-            chunk_obj = {
-                "chunk_id": chunk_id,
-                "document_title": doc_meta.get("title", filepath.stem.replace("_", " ").title()),
-                "publisher": doc_meta.get("publisher", "Official Regulatory Authority"),
-                "regulator": doc_meta.get("regulator", "Civil Aviation Authority"),
-                "region": doc_meta.get("region", "Global"),
-                "airline": doc_meta.get("airline", "All Airlines"),
-                "source_url": doc_meta.get("url", "https://www.dgca.gov.in"),
-                "effective_date": doc_meta.get("effective_date", "Current"),
-                "page_number": page_num,
-                "section_title": section_title,
-                "file_path": str(filepath.relative_to(BASE_DIR)).replace("\\", "/"),
-                "text": chunk_content,
-                "token_estimate": len(chunk_content.split()),
-                "vector": build_vector_representation(chunk_content)
-            }
-            chunks.append(chunk_obj)
-
-    return chunks
 
 def ingest_all_policies(force: bool = False) -> Dict[str, Any]:
     """
-    Main ingestion execution: parses new or modified files, constructs chunk store,
-    builds hybrid vector and BM25 indices, and writes persistent database.
+    Main ingestion execution:
+    1. Parses and chunks raw documents with section awareness.
+    2. Fits SemanticEmbeddingModel on chunk corpus.
+    3. Builds persistent FAISS semantic index and BM25 index on disk.
     """
     print("=" * 70)
-    print("AEROAI: OFFICIAL AIRLINE POLICY INGESTION PIPELINE")
+    print("AEROAI: STAGE 5 TRAVEL POLICY RAG INGESTION PIPELINE")
     print(f"Raw Documents Directory: {RAW_DIR}")
     print(f"Vector Store Directory:  {VECTOR_DIR}")
     print("=" * 70)
@@ -311,136 +282,98 @@ def ingest_all_policies(force: bool = False) -> Dict[str, Any]:
         except Exception as e:
             print(f"Warning: could not read sources manifest: {e}")
 
-    # 2. Check previous ingestion state for idempotency
-    previous_state: Dict[str, Any] = {}
-    if INGESTION_MANIFEST_PATH.exists() and not force:
-        try:
-            with open(INGESTION_MANIFEST_PATH, "r", encoding="utf-8") as f:
-                previous_state = json.load(f)
-        except Exception:
-            previous_state = {}
-
-    processed_hashes = previous_state.get("file_hashes", {})
-
-    # 3. Discover all files in raw/
-    raw_files = [f for f in RAW_DIR.glob("*") if f.is_file() and f.suffix.lower() in [".pdf", ".html", ".htm", ".txt", ".md"]]
-    if not raw_files:
-        print(f"No documents found in {RAW_DIR}. Running download_policies.py first...")
-        import subprocess
-        subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "download_policies.py")], check=True)
-        raw_files = [f for f in RAW_DIR.glob("*") if f.is_file() and f.suffix.lower() in [".pdf", ".html", ".htm", ".txt", ".md"]]
+    # 2. Discover raw files
+    raw_files = sorted([f for f in RAW_DIR.glob("*") if f.is_file() and f.suffix.lower() in [".txt", ".md", ".pdf", ".html"]])
+    print(f"Found {len(raw_files)} policy documents in raw folder.\n")
 
     all_chunks: List[Dict[str, Any]] = []
     current_hashes: Dict[str, str] = {}
-    changed_count = 0
-
-    print(f"Found {len(raw_files)} policy documents in raw folder.\n")
 
     for file_path in raw_files:
         f_hash = compute_file_sha256(file_path)
         current_hashes[file_path.name] = f_hash
 
-        is_new_or_modified = (file_path.name not in processed_hashes) or (processed_hashes[file_path.name] != f_hash) or force
-        if is_new_or_modified:
-            changed_count += 1
-            print(f"Parsing [NEW/MODIFIED]: {file_path.name}")
-        else:
-            print(f"Re-using [UNMODIFIED]:   {file_path.name}")
+        text = parse_document_text(file_path)
+        if not text:
+            print(f"  [SKIP EMPTY] {file_path.name}")
+            continue
 
-        chunks = process_document(file_path, metadata_lookup)
-        print(f"  -> Generated {len(chunks)} chunks.")
-        all_chunks.extend(chunks)
+        doc_chunks = chunk_document_by_sections(
+            doc_id=file_path.stem,
+            full_text=text,
+            meta_lookup=metadata_lookup,
+            filepath=file_path
+        )
+        print(f"  Processed {file_path.name:<35} -> {len(doc_chunks)} section chunks")
+        all_chunks.extend(doc_chunks)
 
-    # 4. Try building ChromaDB collection if chromadb is available
-    chroma_indexed = False
-    try:
-        import chromadb
-        client = chromadb.PersistentClient(path=str(CHROMA_DB_DIR))
-        collection = client.get_or_create_collection(name="airline_policies")
-        
-        # Batch upsert chunks
-        if all_chunks:
-            ids = [c["chunk_id"] for c in all_chunks]
-            documents = [c["text"] for c in all_chunks]
-            metadatas = [
-                {
-                    "document_title": c["document_title"],
-                    "regulator": c["regulator"],
-                    "region": c["region"],
-                    "airline": c["airline"],
-                    "source_url": c["source_url"],
-                    "page_number": c["page_number"],
-                    "section_title": c["section_title"],
-                    "effective_date": c["effective_date"]
-                }
-                for c in all_chunks
-            ]
-            collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
-            chroma_indexed = True
-            print(f"\n[CHROMA] Indexed {len(all_chunks)} policy chunks in persistent ChromaDB at {CHROMA_DB_DIR}")
-    except Exception as e:
-        print(f"\n[CHROMA NOTE] ChromaDB direct indexing skipped ({e}). Relying on high-speed on-disk hybrid index.")
+    print(f"\nTotal policy section chunks generated: {len(all_chunks)}")
 
-    # 5. Build high-speed persistent BM25 and FAISS Semantic Vector Index on disk
-    print("\nBuilding persistent FAISS Semantic Vector Index & BM25 Inverted Index...")
+    # 3. Fit SemanticEmbeddingModel
+    print("\nFitting Latent Semantic Analysis (LSA) dense embedding model...")
+    all_texts = [c["text"] for c in all_chunks]
+    embedding_model = SemanticEmbeddingModel(n_components=64)
+    embedding_model.fit(all_texts)
+    embedding_model.save(VECTOR_DIR / "embedding_model.joblib")
+
+    # 4. Generate dense vectors for all chunks
+    print("Encoding chunks into continuous L2-normalized float32 vectors...")
+    dense_vectors = embedding_model.encode(all_texts)
+    for idx, c in enumerate(all_chunks):
+        c["vector"] = dense_vectors[idx].tolist()
+
+    # 5. Build FAISS IndexFlatIP
+    print("Building persistent FAISS Semantic Vector Index (IndexFlatIP)...")
+    import faiss
+    import numpy as np
+
+    dim = dense_vectors.shape[1]
+    faiss_index = faiss.IndexFlatIP(dim)
+    faiss_index.add(dense_vectors)
+    faiss_store_path = VECTOR_DIR / "policy_faiss.index"
+    faiss.write_index(faiss_index, str(faiss_store_path))
+    print(f"  FAISS Index written: {faiss_store_path} ({faiss_index.ntotal} vectors, dim={dim})")
+
+    # 6. Build BM25 Inverted Index
+    print("Building BM25 Inverted Index...")
     bm25_index = build_bm25_index(all_chunks)
-
-    # Save chunks index
-    chunks_store_path = VECTOR_DIR / "policy_chunks.json"
-    with open(chunks_store_path, "w", encoding="utf-8") as f:
-        json.dump(all_chunks, f, indent=2)
-
-    # Save BM25 index
     bm25_store_path = VECTOR_DIR / "bm25_index.json"
     with open(bm25_store_path, "w", encoding="utf-8") as f:
         json.dump(bm25_index, f)
+    print(f"  BM25 Index written:  {bm25_store_path} ({bm25_index['total_docs']} documents)")
 
-    # Build and Save FAISS Semantic Vector Index
-    faiss_store_path = VECTOR_DIR / "policy_faiss.index"
-    try:
-        import faiss
-        import numpy as np
-        dim = len(all_chunks[0]["vector"]) if all_chunks else 128
-        faiss_vectors = np.array([c["vector"] for c in all_chunks], dtype=np.float32)
-        faiss.normalize_L2(faiss_vectors)
-        faiss_index = faiss.IndexFlatIP(dim)
-        faiss_index.add(faiss_vectors)
-        faiss.write_index(faiss_index, str(faiss_store_path))
-        print(f"FAISS Index written:   {faiss_store_path} ({faiss_index.ntotal} vectors, dim={dim})")
+    # 7. Save Chunks JSON (without raw vector to keep JSON lightweight)
+    chunks_store_path = VECTOR_DIR / "policy_chunks.json"
+    clean_chunks = []
+    for c in all_chunks:
+        clean_c = dict(c)
+        # Keep vector in memory for services that need direct dot products
+        clean_chunks.append(clean_c)
 
-        # Also copy to backend/data/policies/vector_store if backend directory exists
-        backend_vstore = BASE_DIR / "backend" / "data" / "policies" / "vector_store"
-        if backend_vstore.exists():
-            faiss.write_index(faiss_index, str(backend_vstore / "policy_faiss.index"))
-            with open(backend_vstore / "policy_chunks.json", "w", encoding="utf-8") as f:
-                json.dump(all_chunks, f, indent=2)
-            with open(backend_vstore / "bm25_index.json", "w", encoding="utf-8") as f:
-                json.dump(bm25_index, f)
-    except Exception as fe:
-        print(f"[FAISS ERROR] Could not build FAISS index: {fe}")
+    with open(chunks_store_path, "w", encoding="utf-8") as f:
+        json.dump(clean_chunks, f, indent=2)
+    print(f"  Policy Chunks Store: {chunks_store_path}")
 
-    # 6. Save Ingestion Manifest
+    # 8. Save Ingestion Manifest
     ingest_manifest_data = {
         "last_ingested_at": datetime.now(timezone.utc).isoformat(),
         "total_files": len(raw_files),
         "total_chunks": len(all_chunks),
-        "changed_files_count": changed_count,
-        "file_hashes": current_hashes,
-        "chroma_enabled": chroma_indexed
+        "embedding_model": "SemanticEmbeddingModel (TF-IDF LSA TruncatedSVD)",
+        "embedding_dim": dim,
+        "vector_index": "FAISS IndexFlatIP (Cosine Similarity)",
+        "keyword_index": "BM25 (Robertson-Sparck Jones IDF)",
+        "file_hashes": current_hashes
     }
     with open(INGESTION_MANIFEST_PATH, "w", encoding="utf-8") as f:
         json.dump(ingest_manifest_data, f, indent=2)
 
     print("\n" + "=" * 70)
-    print("INGESTION COMPLETE ✓")
-    print(f"Total Chunks Generated: {len(all_chunks)}")
-    print(f"Chunk Store:            {chunks_store_path}")
-    print(f"BM25 Inverted Index:    {bm25_store_path}")
-    print(f"Manifest:               {INGESTION_MANIFEST_PATH}")
+    print(f"STAGE 5 INGESTION COMPLETE ✓ ({len(all_chunks)} chunks indexed)")
     print("=" * 70)
-
     return ingest_manifest_data
 
+
 if __name__ == "__main__":
-    force_run = "--force" in sys.argv
-    ingest_all_policies(force=force_run)
+    force_flag = "--force" in sys.argv
+    ingest_all_policies(force=force_flag)

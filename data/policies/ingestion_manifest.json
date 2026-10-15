@@ -1,18 +1,19 @@
 {
-  "last_ingested_at": "2026-10-14T08:09:50.139979+00:00",
-  "total_files": 9,
-  "total_chunks": 9,
-  "changed_files_count": 9,
+  "last_ingested_at": "2026-10-14T20:53:27.121380+00:00",
+  "total_files": 8,
+  "total_chunks": 39,
+  "embedding_model": "SemanticEmbeddingModel (TF-IDF LSA TruncatedSVD)",
+  "embedding_dim": 38,
+  "vector_index": "FAISS IndexFlatIP (Cosine Similarity)",
+  "keyword_index": "BM25 (Robertson-Sparck Jones IDF)",
   "file_hashes": {
-    "air-india-citizen-charter.txt": "0ec9089727dc434587b99c3715098b7e8184a9be403c4678c66a08b4c65d1d86",
+    "air-india-citizen-charter.txt": "340dfd969e6762e8ad4c3699ac4be380aa19ba8c7765e4b3313d77bf8352f90c",
     "dgca-car-m-part-iv.txt": "acd26e9faddb452a91744c2855f3e7cc133b297ab8d55674b5f5b88070dc4aaf",
-    "dgca-passenger-charter.txt": "0658843ee3368a6c65b9b280e5f4a295529c9df27ee6f9686958788edd72d5cf",
-    "dgca_car_section3_series_m_part4.pdf": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dgca-passenger-charter.txt": "d944cfe275b51d7987c3a381c0cc1887b1328cfd490be62abb20f6da68b8d474",
     "eu-regulation-261-2004.txt": "4f865e6e222c1cf0e469f1fbc3e94eb8897dc6b70da1c4d83cbd987f2335e165",
-    "indigo-conditions-of-carriage.txt": "3230e70dea1efd0e6fa5110efb6f05e601e026d1532852848994406dcad17494",
+    "indigo-conditions-of-carriage.txt": "3da5becaa59760d6901cdaec3627a5d5f178dfefb193fb921deb5dfaa3222bda",
     "montreal-convention-iata.txt": "755e6df6cacc7ff500773431f989326089a0c55ee679dad07766df3e5fa87aac",
-    "uk_caa_uk261_passenger_rights.html": "f096c2047bbd98d1d4f815834a442a287e1b46511831237379f8d675916f37ee",
+    "uk_caa_uk261_passenger_rights.txt": "ff96291d7995e01a96855463c6eb5311a8d570e0440b9fa8221f475879b1ce92",
     "us-dot-refund-rule-14cfr260.txt": "5368a3aa47552877dec27374524c921255a901c6b86f3796fb151fae5f03e788"
-  },
-  "chroma_enabled": false
+  }
 }
