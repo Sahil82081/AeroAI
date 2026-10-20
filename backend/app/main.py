@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.core.config import settings
@@ -55,6 +55,11 @@ app.include_router(suppliers_endpoint.router)
 @app.websocket("/ws/events")
 async def root_ws_events(websocket: WebSocket):
     await events_endpoint.kafka_events_websocket(websocket)
+
+@app.head("/")
+async def root_head():
+    return Response(status_code=status.HTTP_200_OK, media_type="application/json")
+
 
 @app.get("/")
 def root():
