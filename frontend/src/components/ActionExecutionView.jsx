@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Play,
   RotateCcw,
@@ -10,9 +11,12 @@ import {
   AlertTriangle,
   History,
   Undo2,
-  Clock
+  Clock,
+  Terminal,
+  Zap
 } from 'lucide-react';
 import { apiService } from '../services/api';
+import { CountUpNumber } from './ui/SaaSPrimitives';
 
 export function ActionExecutionView() {
   const [planId, setPlanId] = useState('PLAN-TRN-456');
@@ -168,220 +172,279 @@ export function ActionExecutionView() {
   return (
     <div className="space-y-6">
       {/* Header & Mock Disclaimer */}
-      <div className="p-5 rounded-2xl bg-slate-900/80 border border-teal-500/30 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="p-6 rounded-3xl bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] shadow-glass-card space-y-3 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/40">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/40 font-mono shadow-[0_0_10px_rgba(20,184,166,0.2)]">
                 STAGE 8 &middot; AUTONOMOUS RECOVERY EXECUTION &amp; AUDIT LOG
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span className="px-3 py-1 rounded-full text-[11px] font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
                 SIMULATED MOCK SUPPLIER TRANSACTIONS
               </span>
             </div>
-            <h2 className="text-lg font-bold text-white mt-1.5">
+            <h2 className="text-xl font-bold text-white mt-2 tracking-tight font-display">
               Idempotent Action Execution Layer &amp; Audit History
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Converts Recovery Plans into executable actions (<strong>Cancel, Rebook, Refund, Modify Hotel, Notify Traveler, Notify Contact</strong>) against our Mock Supplier APIs with strict idempotency keys, retries, timeout handling, partial success, and compensating rollbacks.
+            <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed font-sans">
+              Converts Recovery Plans into executable actions (<strong className="text-slate-200">Cancel, Rebook, Refund, Modify Hotel, Notify Traveler, Notify Contact</strong>) against our Mock Supplier APIs with strict idempotency keys, retries, timeout handling, partial success, and compensating rollbacks.
             </p>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleClearHistory}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl bg-[#0d1527] hover:bg-[#131f38] text-xs font-semibold text-slate-200 border border-white/[0.1] hover:border-teal-500/40 flex items-center gap-2 cursor-pointer transition shadow-sm"
           >
             <RotateCcw className="w-3.5 h-3.5 text-teal-400" />
-            Clear Audit Log &amp; Reset
-          </button>
+            <span>Clear Audit Log &amp; Reset</span>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Action Controls & Test Scenarios */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Plan Parameters & 1-Click Scenario Triggers */}
         <div className="space-y-4">
-          <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
-            <div className="text-xs font-bold uppercase tracking-wider text-teal-400">
-              Recovery Plan Parameters
+          <motion.div
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="p-5 rounded-2xl bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] shadow-glass-card space-y-4"
+          >
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400 font-mono">
+              <Terminal className="w-3.5 h-3.5 text-teal-400" />
+              <span>Recovery Plan Parameters</span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Plan ID (Idempotency Scope)</label>
+                <label className="block text-[11px] font-semibold text-slate-400 mb-1 font-sans">
+                  Plan ID (Idempotency Scope)
+                </label>
                 <input
                   type="text"
                   value={planId}
                   onChange={(e) => setPlanId(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-teal-500/50 transition"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">Cancel Booking ID</label>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1 font-sans">
+                    Cancel Booking ID
+                  </label>
                   <input
                     type="text"
                     value={originalBookingId}
                     onChange={(e) => setOriginalBookingId(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-teal-500/50 transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">Rebook Target ID</label>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1 font-sans">
+                    Rebook Target ID
+                  </label>
                   <input
                     type="text"
                     value={newTransportId}
                     onChange={(e) => setNewTransportId(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-teal-500/50 transition"
                   />
                 </div>
               </div>
             </div>
 
             <div className="pt-2 space-y-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => handleExecuteStandardPlan()}
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(20,184,166,0.25)] transition font-display disabled:opacity-50"
               >
                 <Play className="w-3.5 h-3.5" />
                 <span>1. Execute 6-Step Recovery Plan</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => handleExecuteStandardPlan()}
                 disabled={loading}
-                className="w-full py-2 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition shadow-sm font-sans disabled:opacity-50"
               >
                 <Copy className="w-3.5 h-3.5" />
-                <span>2. Re-Trigger Same Plan (Test Idempotency)</span>
-              </button>
+                <span>2. Re-Trigger Same Plan (Idempotency)</span>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={handleSimulateTransientRetry}
                 disabled={loading}
-                className="w-full py-2 rounded-xl bg-sky-600/80 hover:bg-sky-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 rounded-xl bg-sky-600/80 hover:bg-sky-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition shadow-sm font-sans disabled:opacity-50"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>3. Simulate Timeout &amp; Auto-Retry (#2)</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={handleSimulatePartialSuccess}
                 disabled={loading}
-                className="w-full py-2 rounded-xl bg-amber-600/80 hover:bg-amber-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 rounded-xl bg-amber-600/80 hover:bg-amber-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition shadow-sm font-sans disabled:opacity-50"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 <span>4. Simulate Partial Success Recovery</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={handleSimulateCriticalRollback}
                 disabled={loading}
-                className="w-full py-2 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition shadow-sm font-sans disabled:opacity-50"
               >
                 <Undo2 className="w-3.5 h-3.5" />
                 <span>5. Simulate Critical Failure &amp; Rollback</span>
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Selected Audit Record JSON Inspector */}
           {selectedAudit && (
-            <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-5 rounded-2xl bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] shadow-glass-card space-y-3"
+            >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-teal-400">
+                <span className="text-xs font-bold text-teal-400 font-mono">
                   Audit Record Inspector ({selectedAudit.audit_id})
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] text-teal-300 font-bold">
                   {selectedAudit.action_type}
                 </span>
               </div>
-              <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-[10px] text-slate-300 overflow-x-auto max-h-96 font-mono">
+              <pre className="p-3 rounded-xl bg-[#04060d] border border-white/[0.08] text-[10px] text-slate-300 overflow-x-auto max-h-96 font-mono leading-relaxed">
                 {JSON.stringify(selectedAudit, null, 2)}
               </pre>
-            </div>
+            </motion.div>
           )}
         </div>
 
         {/* Right 2 Columns: Latest Plan Execution Summary + Complete Action Audit History */}
         <div className="lg:col-span-2 space-y-4">
           {lastExecutionSummary && (
-            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-700 space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 rounded-3xl bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] shadow-glass-card space-y-4"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-teal-400" />
-                  <span className="text-sm font-bold text-white">
-                    Plan Execution Result: {lastExecutionSummary.plan_id}
-                  </span>
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-mono uppercase text-slate-400">Execution Result</div>
+                    <span className="text-sm font-bold text-white font-display">
+                      Plan ID: {lastExecutionSummary.plan_id}
+                    </span>
+                  </div>
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
                     lastExecutionSummary.execution_status === 'COMPLETED_SUCCESS'
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
                       : lastExecutionSummary.execution_status === 'IDEMPOTENT_REPLAY_NO_OP'
-                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.2)]'
                       : lastExecutionSummary.execution_status === 'PARTIAL_SUCCESS'
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                      : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                      : 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.2)]'
                   }`}
                 >
                   {lastExecutionSummary.execution_status}
                 </span>
               </div>
 
-              <div className="grid grid-cols-4 gap-3 text-center text-xs">
-                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                  <div className="text-slate-400 text-[10px]">Succeeded</div>
-                  <div className="text-base font-bold text-emerald-400">{lastExecutionSummary.succeeded_count}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+                <div className="p-3 rounded-2xl bg-[#04060d] border border-white/[0.08]">
+                  <div className="text-slate-400 text-[10px] font-sans">Succeeded</div>
+                  <div className="text-lg font-bold text-emerald-400 font-display mt-0.5">
+                    <CountUpNumber end={lastExecutionSummary.succeeded_count} duration={0.8} />
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                  <div className="text-slate-400 text-[10px]">Idempotent Replays</div>
-                  <div className="text-base font-bold text-indigo-400">{lastExecutionSummary.idempotent_replays}</div>
+                <div className="p-3 rounded-2xl bg-[#04060d] border border-white/[0.08]">
+                  <div className="text-slate-400 text-[10px] font-sans">Idempotent Replays</div>
+                  <div className="text-lg font-bold text-indigo-400 font-display mt-0.5">
+                    <CountUpNumber end={lastExecutionSummary.idempotent_replays} duration={0.8} />
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                  <div className="text-slate-400 text-[10px]">Failed Actions</div>
-                  <div className="text-base font-bold text-amber-400">{lastExecutionSummary.failed_count}</div>
+                <div className="p-3 rounded-2xl bg-[#04060d] border border-white/[0.08]">
+                  <div className="text-slate-400 text-[10px] font-sans">Failed Actions</div>
+                  <div className="text-lg font-bold text-amber-400 font-display mt-0.5">
+                    <CountUpNumber end={lastExecutionSummary.failed_count} duration={0.8} />
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
-                  <div className="text-slate-400 text-[10px]">Rolled Back</div>
-                  <div className="text-base font-bold text-rose-400">{lastExecutionSummary.rolled_back_count}</div>
+                <div className="p-3 rounded-2xl bg-[#04060d] border border-white/[0.08]">
+                  <div className="text-slate-400 text-[10px] font-sans">Rolled Back</div>
+                  <div className="text-lg font-bold text-rose-400 font-display mt-0.5">
+                    <CountUpNumber end={lastExecutionSummary.rolled_back_count} duration={0.8} />
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Action Audit History List */}
-          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="p-6 rounded-3xl bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] shadow-glass-card space-y-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
                 <History className="w-4 h-4 text-teal-400" />
-                Action Execution Audit History ({auditHistory.length} records)
+                <span>Action Execution Audit History ({auditHistory.length} records)</span>
               </div>
-              <span className="text-[11px] text-slate-500">Click any audit row to inspect request/response JSON</span>
+              <span className="text-[11px] text-slate-400 font-sans">Click any audit row to inspect request/response JSON</span>
             </div>
 
             {auditHistory.length > 0 ? (
-              <div className="space-y-2">
-                {auditHistory.map((rec) => (
-                  <div
-                    key={rec.audit_id}
+              <div className="space-y-2.5">
+                {auditHistory.map((rec, i) => (
+                  <motion.div
+                    key={rec.audit_id || i}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: i * 0.03 }}
                     onClick={() => setSelectedAudit(rec)}
-                    className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-wrap items-center justify-between gap-2 text-xs ${
+                    className={`p-4 rounded-2xl border transition cursor-pointer flex flex-wrap items-center justify-between gap-3 text-xs ${
                       selectedAudit?.audit_id === rec.audit_id
-                        ? 'bg-slate-800/90 border-teal-500/50'
-                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                        ? 'bg-[#0e172e] border-teal-500/50 shadow-[0_0_15px_rgba(20,184,166,0.15)]'
+                        : 'bg-[#04060d]/80 border-white/[0.06] hover:border-white/[0.15] hover:bg-[#070b16]'
                     }`}
                   >
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-teal-300 font-bold">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30">
                           {rec.action_type}
                         </span>
-                        <span className="font-semibold text-white">Booking: {rec.booking_id}</span>
+                        <span className="font-semibold text-white font-display">Booking: {rec.booking_id}</span>
                         <span className="font-mono text-[10px] text-slate-400">Plan: {rec.plan_id}</span>
                         {rec.attempts > 1 && (
-                          <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[10px]">
+                          <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono text-[10px] border border-sky-500/30">
                             Attempts: {rec.attempts}
                           </span>
                         )}
@@ -395,27 +458,27 @@ export function ActionExecutionView() {
                     </div>
 
                     <span
-                      className={`px-2.5 py-1 rounded-full font-mono text-[10px] font-bold border ${
+                      className={`px-3 py-1 rounded-full font-mono text-[10px] font-bold border ${
                         rec.status === 'SUCCESS'
-                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.15)]'
                           : rec.status === 'IDEMPOTENT_REPLAY_SKIPPED_DUPLICATE'
-                          ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
+                          ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 shadow-[0_0_8px_rgba(99,102,241,0.15)]'
                           : rec.status === 'ROLLED_BACK'
-                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                          : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.15)]'
+                          : 'bg-rose-500/15 text-rose-300 border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.15)]'
                       }`}
                     >
                       {rec.status}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center text-xs text-slate-500">
-                No recovery actions executed yet. Click <strong>"1. Execute 6-Step Recovery Plan"</strong> to run a recovery plan against the Mock Supplier APIs.
+              <div className="p-10 text-center text-xs text-slate-500 font-sans">
+                No recovery actions executed yet. Click <strong className="text-teal-400">"1. Execute 6-Step Recovery Plan"</strong> to run a recovery plan against the Mock Supplier APIs.
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

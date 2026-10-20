@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio,
   Zap,
@@ -226,51 +227,54 @@ export function KafkaEventStreamView() {
   return (
     <div className="space-y-6">
       {/* Top Architecture Banner */}
-      <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-5 shadow-lg">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 p-6 backdrop-blur-2xl shadow-glass-card relative overflow-hidden">
+        <div className="absolute inset-0 aviation-grid-overlay opacity-30 pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="px-3 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
                 Stage 9 &middot; Apache Kafka + WebSocket
               </span>
               <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                className={`inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[11px] font-mono font-semibold border backdrop-blur-md ${
                   wsConnected
-                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
                     : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                 }`}
               >
-                <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-amber-400'}`} />
                 {wsConnected ? 'WebSocket Connected (/api/v1/events/ws)' : 'WebSocket Reconnecting...'}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2.5 font-display tracking-tight">
               <Radio className="w-5 h-5 text-indigo-400" />
-              Event-Driven Disruption Recovery Architecture (Apache Kafka)
+              Event-Driven Disruption Recovery Mesh (Apache Kafka)
             </h2>
-            <p className="text-xs text-slate-300 max-w-3xl">
-              Decoupled producers and idempotent agent consumer groups communicating over partitioned Kafka topics with correlation IDs, automatic retries, Dead-Letter Topic (<code className="text-rose-300">recovery.dlq</code>) routing, and real-time WebSocket streaming.
+            <p className="text-xs text-slate-300 max-w-3xl font-sans leading-relaxed">
+              Decoupled producers and idempotent agent consumer groups communicating over partitioned Kafka topics with correlation IDs, automatic retries, Dead-Letter Topic (<code className="text-rose-300 font-mono">recovery.dlq</code>) routing, and real-time WebSocket streaming.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-              <span className="text-slate-400">Stream Delay:</span>
+          <div className="flex flex-wrap items-center gap-2 relative z-10">
+            <div className="flex items-center gap-2 bg-[#04060d] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs">
+              <span className="text-slate-400 font-mono text-[11px]">Stream Delay:</span>
               <select
                 value={stepDelayMs}
                 onChange={(e) => setStepDelayMs(Number(e.target.value))}
                 className="bg-transparent text-indigo-300 font-mono font-semibold focus:outline-none cursor-pointer"
               >
-                <option value={0} className="bg-slate-900">0ms (Instant)</option>
-                <option value={120} className="bg-slate-900">120ms / hop</option>
-                <option value={300} className="bg-slate-900">300ms / hop</option>
+                <option value={0} className="bg-[#070b16]">0ms (Instant)</option>
+                <option value={120} className="bg-[#070b16]">120ms / hop</option>
+                <option value={300} className="bg-[#070b16]">300ms / hop</option>
               </select>
             </div>
 
             <button
               onClick={handleResetBroker}
               disabled={runningMode !== null}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/[0.08] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5 text-slate-400" />
               <span>Reset Topics</span>
@@ -279,25 +283,25 @@ export function KafkaEventStreamView() {
         </div>
 
         {/* Pipeline Topology Strip */}
-        <div className="mt-5 pt-4 border-t border-slate-800/80 overflow-x-auto">
+        <div className="mt-5 pt-4 border-t border-white/[0.08] overflow-x-auto relative z-10">
           <div className="flex items-center gap-2 min-w-max text-xs">
             {[
-              { name: 'Disruption API', role: 'Producer', topic: 'disruption.detected', color: 'border-rose-500/40 bg-rose-950/30 text-rose-200' },
-              { name: 'Kafka Broker', role: 'Partitioned Log', topic: 'corr_id hash', color: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-200' },
-              { name: 'Impact Agent', role: 'impact-agent-group', topic: 'journey.affected', color: 'border-amber-500/40 bg-amber-950/30 text-amber-200' },
-              { name: 'Kafka Broker', role: 'Topic Bus', topic: 'recovery.requested', color: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-200' },
-              { name: 'Recovery Agent', role: 'recovery-agent-group', topic: 'recovery.planned', color: 'border-sky-500/40 bg-sky-950/30 text-sky-200' },
-              { name: 'Kafka Broker', role: 'Topic Bus', topic: 'action.requested', color: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-200' },
-              { name: 'Action Agent', role: 'action-agent-group', topic: 'action.completed', color: 'border-teal-500/40 bg-teal-950/30 text-teal-200' },
-              { name: 'Kafka Broker', role: 'Topic Bus', topic: 'notification.requested', color: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-200' },
-              { name: 'Notification Agent', role: 'notification-agent-group', topic: 'WebSocket Push', color: 'border-emerald-500/40 bg-emerald-950/30 text-emerald-200' },
+              { name: 'Disruption API', role: 'Producer', topic: 'disruption.detected', color: 'border-rose-500/40 bg-rose-950/20 text-rose-200' },
+              { name: 'Kafka Broker', role: 'Partitioned Log', topic: 'corr_id hash', color: 'border-indigo-500/40 bg-indigo-950/30 text-indigo-200' },
+              { name: 'Impact Agent', role: 'impact-agent-group', topic: 'journey.affected', color: 'border-amber-500/40 bg-amber-950/20 text-amber-200' },
+              { name: 'Kafka Broker', role: 'Topic Bus', topic: 'recovery.requested', color: 'border-indigo-500/40 bg-indigo-950/30 text-indigo-200' },
+              { name: 'Recovery Agent', role: 'recovery-agent-group', topic: 'recovery.planned', color: 'border-sky-500/40 bg-sky-950/20 text-sky-200' },
+              { name: 'Kafka Broker', role: 'Topic Bus', topic: 'action.requested', color: 'border-indigo-500/40 bg-indigo-950/30 text-indigo-200' },
+              { name: 'Action Agent', role: 'action-agent-group', topic: 'action.completed', color: 'border-teal-500/40 bg-teal-950/20 text-teal-200' },
+              { name: 'Kafka Broker', role: 'Topic Bus', topic: 'notification.requested', color: 'border-indigo-500/40 bg-indigo-950/30 text-indigo-200' },
+              { name: 'Notification Agent', role: 'notification-agent-group', topic: 'WebSocket Push', color: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' },
             ].map((node, idx, arr) => (
               <React.Fragment key={idx}>
-                <div className={`px-3 py-2 rounded-xl border ${node.color} flex flex-col`}>
-                  <span className="font-bold text-[11px]">{node.name}</span>
+                <div className={`px-3 py-2 rounded-xl border ${node.color} flex flex-col shadow-sm backdrop-blur-md`}>
+                  <span className="font-bold text-[11px] font-display">{node.name}</span>
                   <span className="text-[10px] opacity-75 font-mono">{node.topic}</span>
                 </div>
-                {idx < arr.length - 1 && <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />}
+                {idx < arr.length - 1 && <ArrowRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />}
               </React.Fragment>
             ))}
           </div>
@@ -305,82 +309,90 @@ export function KafkaEventStreamView() {
       </div>
 
       {/* Action Trigger Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-        <button
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => handleTriggerPipeline('normal')}
           disabled={runningMode !== null}
-          className="p-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-left transition shadow-md cursor-pointer flex flex-col justify-between"
+          className="p-5 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:opacity-50 text-white text-left transition shadow-lg shadow-indigo-600/25 cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider bg-indigo-800/70 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-bold uppercase tracking-wider bg-black/25 border border-white/10 px-2.5 py-0.5 rounded-lg font-mono">
               1. Full Event Cascade
             </span>
             <Play className="w-4 h-4" />
           </div>
-          <div className="mt-2">
-            <div className="font-bold text-sm">Trigger Kafka Disruption Pipeline</div>
-            <p className="text-[11px] text-indigo-100/80 mt-0.5">
+          <div className="mt-3">
+            <div className="font-bold text-sm font-display">Trigger Kafka Disruption Pipeline</div>
+            <p className="text-[11px] text-indigo-100/80 mt-1 font-sans leading-relaxed">
               Emits Flight AI-202 delay (+240m) &rarr; streams all 7 recovery milestones over WebSocket.
             </p>
           </div>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleTestIdempotentConsumer}
           disabled={runningMode !== null}
-          className="p-4 rounded-2xl bg-slate-900 hover:bg-slate-800/90 border border-teal-500/40 text-left transition cursor-pointer flex flex-col justify-between"
+          className="p-5 rounded-2xl bg-[#070b16]/80 hover:bg-[#0b1120] border border-teal-500/40 text-left transition shadow-glass-card cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between text-teal-400">
-            <span className="text-xs font-bold uppercase tracking-wider bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-bold uppercase tracking-wider bg-teal-500/10 border border-teal-500/30 px-2.5 py-0.5 rounded-lg font-mono">
               2. Idempotent Consumer
             </span>
             <CopyCheck className="w-4 h-4" />
           </div>
-          <div className="mt-2">
-            <div className="font-bold text-sm text-slate-100">Replay Duplicate Kafka Event</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Re-sends identical <code className="text-teal-300">event_id</code> / <code className="text-teal-300">idempotency_key</code> &mdash; consumer deduplicates &amp; skips.
+          <div className="mt-3">
+            <div className="font-bold text-sm text-slate-100 font-display">Replay Duplicate Kafka Event</div>
+            <p className="text-[11px] text-slate-400 mt-1 font-sans leading-relaxed">
+              Re-sends identical <code className="text-teal-300 font-mono">event_id</code> / <code className="text-teal-300 font-mono">idempotency_key</code> &mdash; consumer deduplicates &amp; skips.
             </p>
           </div>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => handleTriggerPipeline('transient_retry')}
           disabled={runningMode !== null}
-          className="p-4 rounded-2xl bg-slate-900 hover:bg-slate-800/90 border border-amber-500/40 text-left transition cursor-pointer flex flex-col justify-between"
+          className="p-5 rounded-2xl bg-[#070b16]/80 hover:bg-[#0b1120] border border-amber-500/40 text-left transition shadow-glass-card cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between text-amber-400">
-            <span className="text-xs font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-lg font-mono">
               3. Consumer Retry Policy
             </span>
             <RotateCcw className="w-4 h-4" />
           </div>
-          <div className="mt-2">
-            <div className="font-bold text-sm text-slate-100">Simulate Transient Failure &amp; Retry</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+          <div className="mt-3">
+            <div className="font-bold text-sm text-slate-100 font-display">Simulate Transient Failure &amp; Retry</div>
+            <p className="text-[11px] text-slate-400 mt-1 font-sans leading-relaxed">
               Recovery Agent fails on attempt #1, retries automatically, and succeeds on retry #1.
             </p>
           </div>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => handleTriggerPipeline('poison_dlq')}
           disabled={runningMode !== null}
-          className="p-4 rounded-2xl bg-slate-900 hover:bg-slate-800/90 border border-rose-500/40 text-left transition cursor-pointer flex flex-col justify-between"
+          className="p-5 rounded-2xl bg-[#070b16]/80 hover:bg-[#0b1120] border border-rose-500/40 text-left transition shadow-glass-card cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between text-rose-400">
-            <span className="text-xs font-bold uppercase tracking-wider bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-bold uppercase tracking-wider bg-rose-500/10 border border-rose-500/30 px-2.5 py-0.5 rounded-lg font-mono">
               4. Dead-Letter Topic (DLQ)
             </span>
             <AlertTriangle className="w-4 h-4" />
           </div>
-          <div className="mt-2">
-            <div className="font-bold text-sm text-slate-100">Simulate Poison-Pill &rarr; DLQ</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Exhausts consumer retries on <code className="text-rose-300">action.requested</code> &rarr; routes to <code className="text-rose-300">recovery.dlq</code>.
+          <div className="mt-3">
+            <div className="font-bold text-sm text-slate-100 font-display">Simulate Poison-Pill &rarr; DLQ</div>
+            <p className="text-[11px] text-slate-400 mt-1 font-sans leading-relaxed">
+              Exhausts consumer retries on <code className="text-rose-300 font-mono">action.requested</code> &rarr; routes to <code className="text-rose-300 font-mono">recovery.dlq</code>.
             </p>
           </div>
-        </button>
+        </motion.button>
       </div>
 
       {/* Real-Time WebSocket Recovery Milestones Bar */}
@@ -612,49 +624,55 @@ export function KafkaEventStreamView() {
               </span>
             </div>
 
-            <div className="space-y-2 max-h-[310px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
               {(streamData?.events || []).length === 0 ? (
-                <div className="text-center py-10 text-xs text-slate-500">
+                <div className="text-center py-12 text-xs text-slate-500 font-mono">
                   No Kafka events recorded yet. Click <strong>"Trigger Kafka Disruption Pipeline"</strong> above to stream events!
                 </div>
               ) : (
-                (streamData?.events || []).map((evt) => {
-                  const isSelected = selectedEvent?.event_id === evt.event_id;
-                  return (
-                    <div
-                      key={evt.event_id}
-                      onClick={() => setSelectedEvent(evt)}
-                      className={`p-3 rounded-xl border transition cursor-pointer text-xs ${
-                        isSelected
-                          ? 'border-indigo-500 bg-indigo-950/40'
-                          : 'border-slate-800/80 bg-slate-950/60 hover:bg-slate-800/40'
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-semibold text-[11px]">
-                            {evt.topic}
-                          </span>
-                          <span className="font-bold text-slate-200">{evt.ui_message || evt.event_type}</span>
-                        </div>
-                        <div className="flex items-center gap-2 font-mono text-[10px] text-slate-400">
-                          <span>p:{evt.partition}</span>
-                          <span>off:{evt.offset}</span>
-                          {evt.retry_count > 0 && (
-                            <span className="text-amber-300 bg-amber-500/15 px-1.5 py-0.2 rounded">
-                              retry:{evt.retry_count}
+                <AnimatePresence initial={false}>
+                  {(streamData?.events || []).map((evt, idx) => {
+                    const isSelected = selectedEvent?.event_id === evt.event_id;
+                    return (
+                      <motion.div
+                        key={evt.event_id}
+                        initial={{ opacity: 0, x: -16, scale: 0.98 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 16 }}
+                        transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.3) }}
+                        onClick={() => setSelectedEvent(evt)}
+                        className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer text-xs relative overflow-hidden ${
+                          isSelected
+                            ? 'border-indigo-400 bg-indigo-950/50 shadow-[0_0_20px_rgba(99,102,241,0.25)] ring-1 ring-indigo-400/30'
+                            : 'border-white/[0.08] bg-[#070b16]/75 hover:bg-[#0b1120] hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 font-mono font-semibold text-[11px] border border-indigo-500/30">
+                              {evt.topic}
                             </span>
-                          )}
+                            <span className="font-bold text-slate-200 font-display">{evt.ui_message || evt.event_type}</span>
+                          </div>
+                          <div className="flex items-center gap-2 font-mono text-[10px] text-slate-400">
+                            <span>p:{evt.partition}</span>
+                            <span>off:{evt.offset}</span>
+                            {evt.retry_count > 0 && (
+                              <span className="text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30 font-bold">
+                                retry:{evt.retry_count}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] font-mono text-slate-400">
-                        <span>event_id: {evt.event_id}</span>
-                        <span>corr_id: {evt.correlation_id}</span>
-                        <span>producer: {evt.producer}</span>
-                      </div>
-                    </div>
-                  );
-                })
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] font-mono text-slate-400">
+                          <span>event_id: <span className="text-slate-300">{evt.event_id}</span></span>
+                          <span>corr_id: <span className="text-indigo-300">{evt.correlation_id}</span></span>
+                          <span>producer: <span className="text-sky-300">{evt.producer}</span></span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               )}
             </div>
           </div>

@@ -530,11 +530,14 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Clean Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-6 shadow-glass-card relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/30 to-transparent pointer-events-none" />
         <div>
-          <h1 className="text-xl font-bold text-white">My Connected Journey</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Add real Indian flights, IRCTC trains, Volvo buses, and hotels — then test delay recovery.
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white font-display tracking-tight">
+            My Connected Journey
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 font-sans">
+            Add real Indian flights, IRCTC trains, Volvo buses, and hotels — then test autonomous delay recovery.
           </p>
         </div>
 
@@ -542,7 +545,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
           <button
             type="button"
             onClick={() => setShowAddModal(!showAddModal)}
-            className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(14,165,233,0.3)] cursor-pointer font-display"
           >
             <Plus className="w-4 h-4" />
             <span>Add Booking</span>
@@ -552,20 +555,20 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
             type="button"
             onClick={handleLoadSampleTrip}
             disabled={busy}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 border border-slate-700 text-xs font-semibold cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl bg-[#04060d] hover:bg-white/[0.05] disabled:opacity-50 text-slate-200 border border-white/[0.1] hover:border-white/20 text-xs font-semibold cursor-pointer transition font-display"
           >
-            {busy ? 'Working...' : 'Load Mumbai → Delhi → Jaipur Trip'}
+            {busy ? 'Working...' : 'Load Golden Triangle Trip'}
           </button>
 
           {onOpenAdvancedPage && (
             <button
               type="button"
               onClick={() => onOpenAdvancedPage('chatbot')}
-              className="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-sm"
+              className="px-4 py-2.5 rounded-2xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-200 border border-indigo-400/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-[0_0_15px_rgba(99,102,241,0.2)] font-display"
               title="Open Passenger Rights & Airline Policy AI Chatbot"
             >
               <Bot className="w-4 h-4 text-indigo-400" />
-              <span>Ask Passenger Rights AI</span>
+              <span>Ask Policy AI</span>
             </button>
           )}
 
@@ -574,7 +577,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
               type="button"
               onClick={handleClearTrip}
               disabled={busy}
-              className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-rose-950/50 disabled:opacity-50 text-slate-400 hover:text-rose-300 border border-slate-800 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              className="px-3.5 py-2.5 rounded-2xl bg-[#04060d] hover:bg-rose-950/40 disabled:opacity-50 text-slate-400 hover:text-rose-300 border border-white/[0.08] hover:border-rose-500/30 text-xs font-semibold flex items-center gap-1 cursor-pointer transition font-mono"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Clear</span>
@@ -585,7 +588,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
 
       {/* Error Message Banner */}
       {errorMsg && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 px-4 py-3 text-xs text-rose-200 flex items-center justify-between">
+        <div className="rounded-2xl border border-rose-500/40 bg-rose-950/30 px-5 py-3 text-xs text-rose-200 flex items-center justify-between backdrop-blur-xl shadow-[0_0_15px_rgba(244,63,94,0.15)]">
           <span>{errorMsg}</span>
           <button
             type="button"
@@ -601,31 +604,31 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
       {showAddModal && (
         <form
           onSubmit={handleAddBooking}
-          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4"
+          className="bg-[#070b16]/90 border border-white/[0.08] rounded-3xl p-6 space-y-4 shadow-glass-card backdrop-blur-2xl"
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">
+            <h3 className="text-sm font-bold text-white font-display">
               Add Booking (Select Real IRCTC / Airline / Bus / Hotel Timetable)
             </h3>
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              className="text-xs text-slate-400 hover:text-white cursor-pointer"
+              className="text-xs text-slate-400 hover:text-white cursor-pointer font-mono"
             >
               Cancel
             </button>
           </div>
 
           {/* 1-Click Real Timetable Selector */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-950/80 border border-sky-500/30">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#04060d]/80 border border-sky-400/30 shadow-[0_0_15px_rgba(56,189,248,0.1)]">
             <div>
-              <label className="block text-[11px] font-semibold text-sky-400 mb-1">
+              <label className="block text-[11px] font-semibold text-sky-400 mb-1 font-mono">
                 1. Choose Mode
               </label>
               <select
                 value={form.booking_type}
                 onChange={(e) => handleSelectType(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-semibold"
+                className="w-full px-3 py-2 rounded-xl bg-[#070b16] border border-white/[0.1] text-xs text-white font-semibold focus:outline-none focus:border-sky-400"
               >
                 <option value="FLIGHT">✈️ Flight (Air India / IndiGo)</option>
                 <option value="TRAIN">🚆 Train (IRCTC Shatabdi / Vande Bharat / Rajdhani)</option>
@@ -636,12 +639,12 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-sky-400 mb-1">
+              <label className="block text-[11px] font-semibold text-sky-400 mb-1 font-mono">
                 2. Select Real Schedule to Auto-Fill
               </label>
               <select
                 onChange={(e) => handleSelectRealSchedule(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-[#070b16] border border-white/[0.1] text-xs text-white focus:outline-none focus:border-sky-400 font-sans"
               >
                 {activeCatalogOptions.map((item, idx) => (
                   <option key={item.reference_number + idx} value={idx}>
@@ -660,7 +663,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.provider_name}
                 onChange={(e) => setForm({ ...form, provider_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white focus:outline-none focus:border-sky-400"
               />
             </div>
             <div>
@@ -670,7 +673,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.reference_number}
                 onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
               />
             </div>
             <div>
@@ -680,7 +683,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.origin}
                 onChange={(e) => setForm({ ...form, origin: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white focus:outline-none focus:border-sky-400"
               />
             </div>
             <div>
@@ -690,7 +693,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.destination}
                 onChange={(e) => setForm({ ...form, destination: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white focus:outline-none focus:border-sky-400"
               />
             </div>
             <div>
@@ -700,7 +703,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.start_time}
                 onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
               />
             </div>
             <div>
@@ -710,7 +713,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.end_time}
                 onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
               />
             </div>
             <div>
@@ -720,14 +723,14 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                 required
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white"
+                className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
               />
             </div>
             <div className="flex items-end justify-end">
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-bold cursor-pointer"
+                className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition shadow-[0_0_15px_rgba(14,165,233,0.3)] font-display"
               >
                 {busy ? 'Saving...' : 'Save Booking to Trip'}
               </button>
@@ -738,13 +741,13 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
 
       {/* Alert Banner When Disruption Breaks a Connection */}
       {hasBrokenConnection && (
-        <div className="rounded-2xl border border-rose-500/50 bg-rose-950/25 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="rounded-3xl border border-rose-500/40 bg-rose-950/25 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-xl shadow-[0_0_25px_rgba(244,63,94,0.15)]">
           <div className="space-y-1">
-            <div className="text-sm font-bold text-rose-200 flex items-center gap-2">
+            <div className="text-sm font-bold text-rose-200 flex items-center gap-2 font-display">
               <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>Disruption Detected — Downstream Connection Missed!</span>
             </div>
-            <p className="text-xs text-slate-200 leading-relaxed">
+            <p className="text-xs text-slate-200 leading-relaxed font-sans">
               {impactResult?.explanation ||
                 'A delay caused an impossible connection in your itinerary. Click below to find and book the best replacement automatically.'}
             </p>
@@ -754,7 +757,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
             type="button"
             onClick={handleAutoRecover}
             disabled={busy}
-            className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-lg shrink-0 cursor-pointer"
+            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] shrink-0 cursor-pointer transition font-display"
           >
             <Sparkles className="w-4 h-4" />
             <span>{busy ? 'Rebooking...' : 'Auto-Recover Trip with AI'}</span>
@@ -764,40 +767,41 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
 
       {/* Success Banner After AI Recovery */}
       {recoveryResult && (
-        <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/20 p-5 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="rounded-3xl border border-emerald-500/30 bg-[#070b16]/90 p-6 space-y-4 backdrop-blur-2xl shadow-glass-card relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+          <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
+            <div className="text-base font-bold text-emerald-300 flex items-center gap-2 font-display">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               <span>Trip Recovered Automatically by AI!</span>
             </div>
             {recoveryResult.optimization?.selected_option && (
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[11px] font-bold text-emerald-200">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-xs font-mono font-bold text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                 Selected: {recoveryResult.optimization.selected_option.name} (₹{recoveryResult.optimization.selected_option.price})
               </span>
             )}
           </div>
 
-          <p className="text-xs text-slate-200 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans relative z-10">
             {recoveryResult.optimization?.explanation}
           </p>
 
           {/* 3 Simple Columns to Explain in an Interview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-              <div className="text-[11px] font-bold uppercase text-sky-400">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 relative z-10">
+            <div className="p-4 rounded-2xl bg-[#04060d]/80 border border-white/[0.08] space-y-2">
+              <div className="text-[11px] font-bold uppercase text-sky-400 font-mono">
                 1. OR-Tools Math Decision
               </div>
-              <div className="space-y-1 text-xs text-slate-300">
+              <div className="space-y-1.5 text-xs text-slate-300">
                 {(recoveryResult.optimization?.evaluated_alternatives || []).map((alt) => (
                   <div key={alt.transport_id} className="flex items-center justify-between gap-2">
-                    <span className="truncate">{alt.name}</span>
+                    <span className="truncate font-sans">{alt.name}</span>
                     <span
-                      className={`font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                      className={`font-mono text-[10px] px-2 py-0.5 rounded-full shrink-0 border ${
                         alt.selected
-                          ? 'bg-emerald-500/20 text-emerald-300 font-bold'
+                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-bold shadow-[0_0_8px_rgba(16,185,129,0.2)]'
                           : alt.feasible
-                          ? 'bg-slate-800 text-slate-300'
-                          : 'bg-rose-500/15 text-rose-300'
+                          ? 'bg-white/[0.05] text-slate-300 border-white/[0.08]'
+                          : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
                       }`}
                     >
                       {alt.selected ? '✓ WINNER' : alt.feasible ? `Score ${alt.Weighted_Score ?? ''}` : 'Pruned'}
@@ -807,39 +811,39 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-              <div className="text-[11px] font-bold uppercase text-emerald-400">
+            <div className="p-4 rounded-2xl bg-[#04060d]/80 border border-white/[0.08] space-y-2">
+              <div className="text-[11px] font-bold uppercase text-emerald-400 font-mono">
                 2. Real Actions Executed
               </div>
-              <ul className="space-y-1 text-xs text-slate-300">
-                <li>
-                  ✓ Cancelled: {recoveryResult.details?.cancelled_booking || 'Missed connection'}
+              <ul className="space-y-1.5 text-xs text-slate-300 font-sans">
+                <li className="flex items-center gap-1.5">
+                  <span className="text-emerald-400 font-bold font-mono">✓</span> Cancelled: {recoveryResult.details?.cancelled_booking || 'Missed connection'}
                 </li>
-                <li>
-                  ✓ Booked: {recoveryResult.details?.rebooked_booking || recoveryResult.optimization?.selected_option?.name}
+                <li className="flex items-center gap-1.5">
+                  <span className="text-emerald-400 font-bold font-mono">✓</span> Booked: {recoveryResult.details?.rebooked_booking || recoveryResult.optimization?.selected_option?.name}
                 </li>
-                <li>
-                  ✓ Refund Claimed: ₹{recoveryResult.details?.refund_amount_inr ?? 600} (75% waiver)
+                <li className="flex items-center gap-1.5">
+                  <span className="text-emerald-400 font-bold font-mono">✓</span> Refund Claimed: ₹{recoveryResult.details?.refund_amount_inr ?? 600} (75% waiver)
                 </li>
-                <li>
-                  ✓ Hotel: {recoveryResult.details?.hotel_updated || 'Check-in time updated'}
+                <li className="flex items-center gap-1.5">
+                  <span className="text-emerald-400 font-bold font-mono">✓</span> Hotel: {recoveryResult.details?.hotel_updated || 'Check-in time updated'}
                 </li>
               </ul>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-              <div className="text-[11px] font-bold uppercase text-amber-400">
+            <div className="p-4 rounded-2xl bg-[#04060d]/80 border border-white/[0.08] space-y-2">
+              <div className="text-[11px] font-bold uppercase text-amber-400 font-mono">
                 3. Notifications Sent ({(workspace?.notifications || []).length})
               </div>
-              <div className="space-y-1 text-xs text-slate-300">
+              <div className="space-y-1.5 text-xs text-slate-300">
                 {(workspace?.notifications || []).slice(0, 4).map((n, i) => (
                   <div key={i} className="truncate text-[11px]">
                     &bull; <span className="text-slate-400">{n.category}:</span> {n.recipient}
                   </div>
                 ))}
                 {(workspace?.notifications || []).length > 4 && (
-                  <div className="text-[11px] text-slate-400">
-                    + {(workspace?.notifications || []).length - 4} more in &ldquo;Sent Emails &amp; Logs&rdquo; tab
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    + {(workspace?.notifications || []).length - 4} more in &ldquo;Sent Emails &amp; Logs&rdquo;
                   </div>
                 )}
               </div>
@@ -850,16 +854,16 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
 
       {/* Bookings List */}
       {bookings.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center space-y-4">
-          <div className="text-base font-bold text-slate-200">Your itinerary is empty</div>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
-            Click <strong>+ Add Booking</strong> to select real Air India / IndiGo flights, IRCTC trains (Shatabdi, Vande Bharat, Rajdhani, Deccan Queen), Volvo buses, and Taj/ITC/Marriott hotels — or load the Mumbai &rarr; Delhi &rarr; Jaipur trip below.
+        <div className="rounded-3xl border border-dashed border-white/[0.12] bg-[#070b16]/60 backdrop-blur-xl p-12 text-center space-y-4">
+          <div className="text-base font-bold text-white font-display">Your itinerary is empty</div>
+          <p className="text-xs text-slate-400 max-w-md mx-auto font-sans leading-relaxed">
+            Click <strong>+ Add Booking</strong> to select real Air India / IndiGo flights, IRCTC trains (Shatabdi, Vande Bharat, Rajdhani, Deccan Queen), Volvo buses, and Taj/ITC/Marriott hotels — or load the Golden Triangle trip below.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold cursor-pointer"
+              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold cursor-pointer transition shadow-[0_0_15px_rgba(14,165,233,0.3)] font-display"
             >
               + Add Real Flight / Train / Bus / Hotel
             </button>
@@ -867,15 +871,15 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
               type="button"
               onClick={handleLoadSampleTrip}
               disabled={busy}
-              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 border border-slate-700 text-xs font-bold cursor-pointer"
+              className="px-5 py-2.5 rounded-2xl bg-[#04060d] hover:bg-white/[0.05] disabled:opacity-50 text-slate-200 border border-white/[0.1] text-xs font-bold cursor-pointer transition font-display"
             >
-              {busy ? 'Loading...' : 'Load Mumbai → Delhi → Jaipur Trip'}
+              {busy ? 'Loading...' : 'Load Golden Triangle Trip'}
             </button>
             {onOpenAdvancedPage && (
               <button
                 type="button"
                 onClick={() => onOpenAdvancedPage('chatbot')}
-                className="px-5 py-2.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-200 border border-indigo-700/60 text-xs font-bold flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2.5 rounded-2xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-200 border border-indigo-400/30 text-xs font-bold flex items-center gap-2 cursor-pointer transition shadow-[0_0_15px_rgba(99,102,241,0.2)] font-display"
               >
                 <Bot className="w-4 h-4 text-indigo-400" />
                 <span>Ask Policy Chatbot</span>
@@ -884,46 +888,46 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {bookings.map((b, idx) => {
             const edge = edges[idx] || null;
             return (
               <React.Fragment key={b.id}>
                 <div
-                  className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                  className={`p-5 rounded-3xl border backdrop-blur-2xl transition-all shadow-glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                     b.status === 'DELAYED' || b.status === 'CANCELLED'
-                      ? 'border-rose-500/50 bg-rose-950/15'
-                      : 'border-slate-800 bg-slate-900/80'
+                      ? 'border-rose-500/40 bg-rose-950/20 shadow-[0_0_20px_rgba(244,63,94,0.1)]'
+                      : 'border-white/[0.08] bg-[#070b16]/80 hover:border-white/20'
                   }`}
                 >
-                  <div className="flex items-center gap-3.5">
-                    <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3.5 rounded-2xl bg-[#04060d] border border-white/[0.08] shadow-inner">
                       {getIcon(b.booking_type)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-white">{b.title}</span>
+                        <span className="text-sm font-bold text-white font-display">{b.title}</span>
                         <span className="text-xs font-mono text-slate-400">({b.reference_number})</span>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                             b.status === 'CONFIRMED'
-                              ? 'bg-emerald-500/20 text-emerald-300'
-                              : 'bg-rose-500/25 text-rose-300'
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.2)]'
+                              : 'bg-rose-500/20 text-rose-300 border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.2)]'
                           }`}
                         >
                           {b.status}
                         </span>
                       </div>
                       <div className="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-2">
-                        <span>
+                        <span className="font-sans">
                           {b.origin} &rarr; {b.destination}
                         </span>
                         <span className="text-slate-600">&bull;</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-sky-300">
                           {formatDateTime(b.start_time)} &rarr; {formatDateTime(b.end_time)}
                         </span>
                         <span className="text-slate-600">&bull;</span>
-                        <span className="font-mono">₹{b.price}</span>
+                        <span className="font-mono text-slate-200">₹{b.price}</span>
                       </div>
                     </div>
                   </div>
@@ -935,7 +939,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                         <select
                           value={delayMinutes}
                           onChange={(e) => setDelayMinutes(Number(e.target.value))}
-                          className="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200"
+                          className="px-3 py-1.5 rounded-xl bg-[#04060d] border border-white/[0.1] text-xs text-slate-200 focus:outline-none focus:border-amber-400 font-mono"
                         >
                           <option value={60}>+1 hr delay</option>
                           <option value={120}>+2 hr delay</option>
@@ -945,7 +949,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                           type="button"
                           onClick={() => handleSimulateDelay(b.id)}
                           disabled={busy}
-                          className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-bold cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition shadow-[0_0_12px_rgba(245,158,11,0.3)] font-display"
                         >
                           Simulate Delay
                         </button>
@@ -956,7 +960,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                       type="button"
                       onClick={() => handleDeleteBooking(b.id)}
                       disabled={busy}
-                      className="p-2 rounded-xl text-slate-500 hover:text-rose-300 hover:bg-slate-800 cursor-pointer"
+                      className="p-2.5 rounded-xl text-slate-500 hover:text-rose-300 hover:bg-white/[0.05] cursor-pointer transition"
                       title="Remove booking"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -964,22 +968,22 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                   </div>
                 </div>
 
-                {/* Simple Connection Indicator Between Bookings */}
+                {/* Connection Indicator Between Bookings */}
                 {edge && (
-                  <div className="pl-7 flex items-center gap-2.5 py-0.5">
-                    <div className="w-0.5 h-5 bg-slate-700" />
+                  <div className="pl-8 flex items-center gap-3 py-1">
+                    <div className="w-0.5 h-6 bg-white/[0.15]" />
                     <span
-                      className={`text-xs font-medium px-2.5 py-0.5 rounded-lg ${
+                      className={`text-xs font-mono px-3 py-1 rounded-full border ${
                         edge.risk_level === 'IMPOSSIBLE'
-                          ? 'bg-rose-500/20 text-rose-300 font-bold'
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold shadow-[0_0_12px_rgba(244,63,94,0.25)]'
                           : edge.risk_level === 'TIGHT'
-                          ? 'bg-amber-500/20 text-amber-300'
-                          : 'bg-slate-800/80 text-slate-400'
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                          : 'bg-[#04060d] text-slate-400 border-white/[0.08]'
                       }`}
                     >
                       {edge.risk_level === 'IMPOSSIBLE'
-                        ? `❌ Missed Connection (${edge.buffer_minutes}m gap)`
-                        : `✓ ${edge.buffer_minutes}m connection time`}
+                        ? `❌ Missed Connection (${edge.buffer_minutes}m buffer)`
+                        : `✓ ${edge.buffer_minutes}m connection buffer`}
                     </span>
                   </div>
                 )}

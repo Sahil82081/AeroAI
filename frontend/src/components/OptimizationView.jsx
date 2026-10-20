@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Cpu,
   CheckCircle2,
@@ -8,7 +9,9 @@ import {
   Sparkles,
   Clock,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
@@ -147,36 +150,39 @@ export function OptimizationView() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-5 rounded-2xl bg-slate-900/80 border border-violet-500/30 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/40">
+      <div className="p-6 rounded-3xl bg-[#070b16]/80 border border-white/[0.08] backdrop-blur-2xl shadow-glass-card flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 relative overflow-hidden">
+        <div className="absolute inset-0 aviation-grid-overlay opacity-30 pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-violet-500/15 text-violet-300 border border-violet-500/30">
               STAGE 6 &middot; GOOGLE OR-TOOLS CP-SAT SOLVER
             </span>
             {result?.solver_metadata && (
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-slate-800 text-emerald-400 border border-slate-700">
+              <span className="px-3 py-0.5 rounded-full text-[11px] font-mono bg-[#04060d] text-emerald-400 border border-emerald-500/30 shadow-[0_0_8px_rgba(52,211,153,0.2)]">
                 {result.solver_metadata.solver} &middot; {result.solver_metadata.status} ({result.solver_metadata.wall_time_ms} ms)
               </span>
             )}
           </div>
-          <h2 className="text-lg font-bold text-white mt-1.5">
+          <h2 className="text-xl font-bold text-white font-display tracking-tight">
             Constrained Multi-Objective Recovery Optimization Engine
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Mathematical optimization is performed strictly by <strong>Google OR-Tools CP-SAT</strong> (0-1 Integer Linear Programming) enforcing hard departure, connection buffer, hotel check-in, availability, and preference constraints.
+          <p className="text-xs text-slate-300 max-w-3xl font-sans leading-relaxed">
+            Mathematical optimization performed strictly by <strong>Google OR-Tools CP-SAT</strong> (0-1 Integer Linear Programming) enforcing hard departure, transfer buffer, hotel check-in cutoff, seat availability, and preference weight constraints.
           </p>
         </div>
 
         {/* Scenario Presets */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 relative z-10">
           {presets.map((preset) => (
             <button
               key={preset.id}
               onClick={() => applyPreset(preset)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer font-display ${
                 selectedPresetId === preset.id
-                  ? 'bg-violet-600 text-white border-violet-500 shadow'
-                  : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-violet-400/40 shadow-[0_0_15px_rgba(139,92,246,0.35)]'
+                  : 'bg-[#04060d] text-slate-400 border-white/[0.08] hover:bg-slate-800/80 hover:text-white'
               }`}
             >
               {preset.id === 'prompt-train-scenario'
@@ -191,67 +197,67 @@ export function OptimizationView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Constraints & Objective Weight Sliders */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Hard Constraints Box */}
-          <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
+          <div className="p-5 rounded-3xl bg-[#070b16]/80 border border-white/[0.08] backdrop-blur-2xl shadow-glass-card space-y-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400 font-mono">
               <ShieldCheck className="w-4 h-4" />
               CP-SAT Hard Constraints
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 font-sans">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Current Arrival</label>
+                <label className="block text-[11px] text-slate-400 mb-1 font-mono">Current Arrival</label>
                 <input
                   type="text"
                   value={currentArrival}
                   onChange={(e) => setCurrentArrival(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.08] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Hotel Latest Check-in</label>
+                <label className="block text-[11px] text-slate-400 mb-1 font-mono">Hotel Latest Check-in</label>
                 <input
                   type="text"
                   value={hotelLatestCheckin}
                   onChange={(e) => setHotelLatestCheckin(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.08] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Min Connection (min)</label>
+                <label className="block text-[11px] text-slate-400 mb-1 font-mono">Min Connection (min)</label>
                 <input
                   type="number"
                   value={minConnectionMinutes}
                   onChange={(e) => setMinConnectionMinutes(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.08] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Max Budget (INR)</label>
+                <label className="block text-[11px] text-slate-400 mb-1 font-mono">Max Budget (INR)</label>
                 <input
                   type="number"
                   value={maxBudget}
                   onChange={(e) => setMaxBudget(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#04060d] border border-white/[0.08] text-xs text-white font-mono focus:outline-none focus:border-sky-400"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+            <div className="flex items-center justify-between pt-3 border-t border-white/[0.08] text-xs font-sans">
               <span className="text-slate-300">Fetch Live Mock Supplier Inventory</span>
               <input
                 type="checkbox"
                 checked={autoFetchSuppliers}
                 onChange={(e) => setAutoFetchSuppliers(e.target.checked)}
-                className="w-4 h-4 accent-violet-500"
+                className="w-4 h-4 accent-violet-500 rounded"
               />
             </div>
           </div>
 
           {/* Configurable Weights Box */}
-          <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-400">
+          <div className="p-5 rounded-3xl bg-[#070b16]/80 border border-white/[0.08] backdrop-blur-2xl shadow-glass-card space-y-3.5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-400 font-mono">
               <Sliders className="w-4 h-4" />
               Configurable Objective Weights
             </div>
@@ -265,9 +271,9 @@ export function OptimizationView() {
               { key: 'reliability', label: 'Reliability Weight' },
             ].map((w) => (
               <div key={w.key}>
-                <div className="flex justify-between text-[11px] text-slate-300 mb-0.5">
+                <div className="flex justify-between text-[11px] text-slate-300 mb-1 font-sans">
                   <span>{w.label}</span>
-                  <span className="font-mono text-violet-300">{weights[w.key].toFixed(2)}</span>
+                  <span className="font-mono text-violet-300 font-semibold">{weights[w.key].toFixed(2)}</span>
                 </div>
                 <input
                   type="range"
@@ -276,19 +282,21 @@ export function OptimizationView() {
                   step="0.05"
                   value={weights[w.key]}
                   onChange={(e) => updateWeight(w.key, e.target.value)}
-                  className="w-full accent-violet-500"
+                  className="w-full accent-violet-500 cursor-pointer"
                 />
               </div>
             ))}
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => runOptimization()}
               disabled={loading}
-              className="w-full mt-2 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow"
+              className="w-full mt-3 py-3 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-sky-600 hover:from-violet-500 hover:to-sky-500 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.3)] font-display"
             >
               <Play className="w-3.5 h-3.5" />
               <span>{loading ? 'Solving CP-SAT Model...' : 'Run Google OR-Tools Optimizer'}</span>
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -297,92 +305,99 @@ export function OptimizationView() {
           {result && (
             <>
               {/* Optimal Solution Banner */}
-              <div
-                className={`p-5 rounded-2xl border space-y-3 ${
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className={`p-6 rounded-3xl border space-y-3.5 backdrop-blur-2xl shadow-glass-card relative overflow-hidden ${
                   result.constraints_satisfied
-                    ? 'bg-emerald-950/25 border-emerald-500/40'
-                    : 'bg-rose-950/30 border-rose-500/40'
+                    ? 'bg-emerald-950/20 border-emerald-500/40 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
+                    : 'bg-rose-950/25 border-rose-500/40 shadow-[0_0_25px_rgba(244,63,94,0.15)]'
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
                     {result.constraints_satisfied ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </div>
                     ) : (
-                      <AlertTriangle className="w-5 h-5 text-rose-400" />
+                      <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400">
+                        <AlertTriangle className="w-5 h-5" />
+                      </div>
                     )}
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-base font-bold text-white font-display">
                       {result.constraints_satisfied && result.selected_option
                         ? `Optimal Recovery Selected: ${result.selected_option.name} (${result.selected_option.transport_id})`
                         : 'Infeasible: No Option Satisfies All Hard Constraints'}
                     </span>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-900 text-emerald-300 border border-emerald-500/30">
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#04060d] text-emerald-300 border border-emerald-500/30">
                     Objective Score: {result.objective_score}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+                <p className="text-xs text-slate-300 leading-relaxed bg-[#04060d]/80 p-4 rounded-2xl border border-white/[0.08] font-sans">
                   {result.explanation}
                 </p>
-              </div>
+              </motion.div>
 
               {/* All Evaluated Alternatives Table/Cards */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
                   Evaluated Alternatives &amp; Constraint Satisfaction ({result.alternatives?.length || 0})
                 </h3>
 
                 {result.alternatives?.map((alt) => (
-                  <div
+                  <motion.div
                     key={alt.transport_id}
-                    className={`p-4 rounded-xl border transition space-y-2.5 ${
+                    whileHover={{ y: -2 }}
+                    className={`p-5 rounded-2xl border transition-all space-y-3 backdrop-blur-md ${
                       alt.selected
-                        ? 'bg-emerald-950/20 border-emerald-500/50'
+                        ? 'bg-emerald-950/20 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
                         : alt.feasible
-                        ? 'bg-slate-900/70 border-slate-800'
-                        : 'bg-slate-900/30 border-rose-500/25 opacity-80'
+                        ? 'bg-[#070b16]/80 border-white/[0.08] hover:border-white/20'
+                        : 'bg-[#070b16]/50 border-rose-500/20 opacity-80'
                     }`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded font-mono text-xs font-bold bg-slate-800 text-sky-300 border border-slate-700">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-lg font-mono text-xs font-bold bg-[#04060d] text-sky-300 border border-white/[0.08]">
                           {alt.transport_id}
                         </span>
-                        <span className="text-sm font-bold text-white">{alt.name}</span>
+                        <span className="text-sm font-bold text-white font-display">{alt.name}</span>
                         {alt.selected && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_8px_rgba(52,211,153,0.3)]">
                             OR-TOOLS SELECTED OPTIMAL
                           </span>
                         )}
                         {!alt.feasible && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
                             PRUNED (INFEASIBLE)
                           </span>
                         )}
                       </div>
 
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="font-bold text-emerald-400">
+                        <span className="font-bold text-emerald-400 font-mono">
                           {alt.currency} {alt.price}
                         </span>
                         <span className="font-mono text-slate-400">
-                          Penalty Score: <strong className="text-slate-200">{alt.objective_score}</strong>
+                          Penalty: <strong className="text-slate-200">{alt.objective_score}</strong>
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-slate-300 font-sans">
                       <span>Dep: <strong className="font-mono text-sky-300">{alt.departure}</strong> ({alt.departure_clock})</span>
                       <span>&rarr;</span>
                       <span>Arr: <strong className="font-mono text-sky-300">{alt.arrival}</strong> ({alt.arrival_clock})</span>
-                      <span>&bull;</span>
+                      <span className="text-slate-600">&bull;</span>
                       <span>Travel: <strong>{alt.travel_time_minutes}m</strong></span>
-                      <span>&bull;</span>
+                      <span className="text-slate-600">&bull;</span>
                       <span>Wait: <strong>{alt.waiting_time_minutes}m</strong></span>
-                      <span>&bull;</span>
+                      <span className="text-slate-600">&bull;</span>
                       <span>Seats: <strong>{alt.available_seats}</strong></span>
-                      <span>&bull;</span>
+                      <span className="text-slate-600">&bull;</span>
                       <span>Reliability: <strong>{Math.round(alt.reliability * 100)}%</strong></span>
                     </div>
 
@@ -391,24 +406,24 @@ export function OptimizationView() {
                       {Object.entries(alt.constraint_checks || {}).map(([cKey, passed]) => (
                         <span
                           key={cKey}
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1 border ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono flex items-center gap-1 border ${
                             passed
                               ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
                               : 'bg-rose-500/15 text-rose-300 border-rose-500/30 font-semibold'
                           }`}
                         >
-                          {passed ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                          {passed ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <XCircle className="w-3 h-3 text-rose-400" />}
                           {cKey}
                         </span>
                       ))}
                     </div>
 
                     {alt.violation_reasons && alt.violation_reasons.length > 0 && (
-                      <div className="text-[11px] text-rose-300 bg-rose-950/30 px-3 py-1.5 rounded-lg border border-rose-500/20">
+                      <div className="text-[11px] text-rose-300 bg-rose-950/25 px-3.5 py-2 rounded-xl border border-rose-500/20 font-sans">
                         <strong>Constraint Violation:</strong> {alt.violation_reasons.join(' | ')}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </>
@@ -418,3 +433,5 @@ export function OptimizationView() {
     </div>
   );
 }
+
+export default OptimizationView;

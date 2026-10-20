@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Plane, 
   Train, 
@@ -16,8 +17,11 @@ import {
   Info,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
+import { CountUpNumber, StatCard } from './ui/SaaSPrimitives';
 
 export function JourneyGraphView({ 
   journey, 
@@ -54,25 +58,28 @@ export function JourneyGraphView({
     switch (risk) {
       case 'SAFE':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <CheckCircle2 className="w-3 h-3" /> SAFE CONNECTION
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+            <span>SAFE CONNECTION</span>
           </span>
         );
       case 'TIGHT':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <AlertCircle className="w-3 h-3" /> TIGHT CONNECTION
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+            <span>TIGHT CONNECTION</span>
           </span>
         );
       case 'IMPOSSIBLE':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-            <XCircle className="w-3 h-3" /> IMPOSSIBLE CONNECTION
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 shadow-[0_0_10px_rgba(244,63,94,0.2)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.8)] animate-pulse" />
+            <span>IMPOSSIBLE CONNECTION</span>
           </span>
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded-full text-xs text-slate-400 bg-slate-800">
+          <span className="px-2.5 py-1 rounded-full text-xs text-slate-400 bg-slate-900 border border-white/[0.08] font-mono">
             {risk || 'NONE'}
           </span>
         );
@@ -96,109 +103,110 @@ export function JourneyGraphView({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         
         {/* Metric 1: Total Multi-Modal Nodes */}
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-3.5">
-          <div className="p-3 bg-sky-500/10 border border-sky-500/30 rounded-xl text-sky-400">
-            <Layers className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Journey Vertices</div>
-            <div className="text-lg font-bold text-white mt-0.5">{nodes.length} Nodes</div>
-            <div className="text-[10px] text-slate-400">NetworkX DAG Directed Graph</div>
-          </div>
-        </div>
+        <StatCard
+          title="Journey Vertices"
+          value={nodes.length}
+          subtext="NetworkX DAG Directed Graph"
+          icon={Layers}
+          color="sky"
+          delay={0.05}
+        />
 
         {/* Metric 2: Detected Connections */}
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-3.5">
-          <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-400">
-            <GitFork className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Transfers &amp; Edges</div>
-            <div className="text-lg font-bold text-white mt-0.5">{edges.length} Connections</div>
-            <div className="text-[10px] text-slate-400">Chronological Sequence</div>
-          </div>
-        </div>
+        <StatCard
+          title="Transfers & Edges"
+          value={edges.length}
+          subtext="Chronological Sequential Flow"
+          icon={GitFork}
+          color="violet"
+          delay={0.1}
+        />
 
         {/* Metric 3: Safe Connections */}
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-3.5">
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Safe Buffers</div>
-            <div className="text-lg font-bold text-emerald-400 mt-0.5">{riskSummary?.safe_connections || 0} Safe</div>
-            <div className="text-[10px] text-slate-400">Exceeds min required buffer</div>
-          </div>
-        </div>
+        <StatCard
+          title="Safe Buffers"
+          value={riskSummary?.safe_connections || 0}
+          subtext="Exceeds min required buffer"
+          icon={ShieldCheck}
+          color="emerald"
+          delay={0.15}
+        />
 
         {/* Metric 4: Tight / Impossible Risks */}
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-3.5">
-          <div className={`p-3 rounded-xl border ${
+        <StatCard
+          title="Connection Risk"
+          value={
             (riskSummary?.impossible_connections || 0) > 0
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+              ? `${riskSummary?.impossible_connections} Critical`
               : (riskSummary?.tight_connections || 0) > 0
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                : 'bg-slate-800 text-slate-400'
-          }`}>
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Connection Risk</div>
-            <div className={`text-lg font-bold mt-0.5 ${
-              riskSummary?.highest_risk === 'IMPOSSIBLE'
-                ? 'text-rose-400'
-                : riskSummary?.highest_risk === 'TIGHT'
-                  ? 'text-amber-400'
-                  : 'text-emerald-400'
-            }`}>
-              {riskSummary?.tight_connections || 0} Tight &middot; {riskSummary?.impossible_connections || 0} Critical
-            </div>
-            <div className="text-[10px] text-slate-400 font-mono">Status: {riskSummary?.highest_risk || 'SAFE'}</div>
-          </div>
-        </div>
+              ? `${riskSummary?.tight_connections} Tight`
+              : 'Safe'
+          }
+          subtext={`Topology status: ${riskSummary?.highest_risk || 'SAFE'}`}
+          icon={AlertTriangle}
+          color={
+            riskSummary?.highest_risk === 'IMPOSSIBLE'
+              ? 'rose'
+              : riskSummary?.highest_risk === 'TIGHT'
+              ? 'amber'
+              : 'emerald'
+          }
+          delay={0.2}
+        />
 
       </div>
 
       {/* Critical Dependencies Alert if any */}
       {riskSummary?.critical_dependencies && riskSummary.critical_dependencies.length > 0 && (
-        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/30 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-2xl bg-amber-950/25 border border-amber-500/30 flex items-start gap-3 backdrop-blur-xl shadow-lg shadow-amber-950/30"
+        >
+          <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
           <div className="text-xs space-y-1">
-            <span className="font-semibold text-amber-300">Vulnerable Connection Points Identified:</span>
+            <span className="font-bold text-amber-300 font-display">Vulnerable Connection Points Identified:</span>
             <ul className="list-disc list-inside text-slate-300 space-y-0.5 font-mono text-[11px]">
               {riskSummary.critical_dependencies.map((dep, idx) => (
                 <li key={idx}>{dep}</li>
               ))}
             </ul>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Interactive Visual Graph: Sequential Pipeline */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="p-6 sm:p-8 rounded-3xl border border-white/[0.08] bg-[#070b16]/80 backdrop-blur-2xl shadow-2xl space-y-6 relative overflow-hidden">
+        <div className="absolute inset-0 aviation-grid-overlay opacity-30 pointer-events-none" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5 relative z-10">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <h3 className="text-lg font-bold text-white font-display flex items-center gap-2.5">
               <span>Multi-Modal Journey Pipeline</span>
-              <span className="text-xs font-normal text-slate-400 font-mono">
-                ({journey?.title || 'Active Journey'})
+              <span className="text-xs font-normal text-slate-400 font-mono px-2 py-0.5 rounded-lg bg-white/[0.05] border border-white/[0.06]">
+                {journey?.title || 'Active Journey'}
               </span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-1 font-sans">
               NetworkX DAG visual representation showing sequential bookings, transfer buffers, and downstream dependencies.
             </p>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onRefreshGraph}
             disabled={loading}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700/80 cursor-pointer transition"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-xs font-semibold text-white shadow-lg shadow-sky-600/20 cursor-pointer transition flex items-center gap-2 self-start sm:self-auto"
           >
-            Recompute Graph
-          </button>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Recompute Graph</span>
+          </motion.button>
         </div>
 
         {/* Visual Sequence Chain */}
-        <div className="space-y-4">
+        <div className="space-y-4 relative z-10">
           {nodes.length > 0 ? (
             nodes.map((node, index) => {
               const outgoingEdge = edges.find(e => e.source === node.id);
@@ -206,50 +214,53 @@ export function JourneyGraphView({
               return (
                 <div key={node.id} className="space-y-4">
                   {/* Node Card */}
-                  <div 
+                  <motion.div 
+                    whileHover={{ y: -2 }}
                     onClick={() => { setSelectedNodeId(node.id); setSelectedEdgeId(null); }}
-                    className={`p-5 rounded-2xl border transition cursor-pointer relative ${
+                    className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
                       selectedNodeId === node.id 
-                        ? 'bg-slate-800/90 border-sky-500 shadow-md ring-1 ring-sky-500/40' 
-                        : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+                        ? 'bg-[#0f172a]/95 border-sky-400 shadow-[0_0_25px_rgba(14,165,233,0.3)] ring-1 ring-sky-400/50' 
+                        : 'bg-[#0b1120]/80 border-white/[0.08] hover:border-white/20 shadow-glass-card'
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       
                       {/* Left: Type Icon + Provider + Title */}
                       <div className="flex items-start sm:items-center gap-3.5">
-                        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800/90 shadow-inner">
+                        <div className="p-3 rounded-2xl bg-[#04060d] border border-white/[0.08] shadow-inner shrink-0">
                           {getTypeIcon(node.type)}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 font-mono">
                               {node.type}
                             </span>
-                            <span className="text-xs text-slate-500">&bull;</span>
-                            <span className="text-xs font-semibold text-slate-300">
+                            <span className="text-xs text-slate-600">&bull;</span>
+                            <span className="text-xs font-semibold text-slate-300 font-sans">
                               {node.provider}
                             </span>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.06] text-slate-400 border border-white/[0.06]">
                               {node.key}
                             </span>
                           </div>
-                          <h4 className="text-sm font-semibold text-white mt-0.5">
+                          <h4 className="text-sm font-bold text-white mt-1 font-display">
                             {node.name}
                           </h4>
                         </div>
                       </div>
 
                       {/* Right: Route + Times + Status */}
-                      <div className="flex items-center gap-6 text-xs text-slate-300">
+                      <div className="flex flex-wrap items-center gap-6 text-xs text-slate-300">
                         {node.origin && (
-                          <div className="text-right">
-                            <div className="text-slate-400 text-[11px]">Route / Location</div>
-                            <div className="font-medium text-white flex items-center gap-1.5 justify-end">
+                          <div className="text-left sm:text-right">
+                            <div className="text-slate-400 text-[11px] font-mono uppercase tracking-wider">Route</div>
+                            <div className="font-semibold text-white flex items-center gap-1.5 mt-0.5">
                               <span>{node.origin}</span>
                               {node.destination && node.destination !== node.origin && (
                                 <>
-                                  <ArrowRight className="w-3 h-3 text-slate-500" />
+                                  <ArrowRight className="w-3.5 h-3.5 text-sky-400" />
                                   <span>{node.destination}</span>
                                 </>
                               )}
@@ -257,54 +268,59 @@ export function JourneyGraphView({
                           </div>
                         )}
 
-                        <div className="text-right">
-                          <div className="text-slate-400 text-[11px]">Schedule Window</div>
-                          <div className="font-mono text-slate-200">
+                        <div className="text-left sm:text-right">
+                          <div className="text-slate-400 text-[11px] font-mono uppercase tracking-wider">Schedule Window</div>
+                          <div className="font-mono text-slate-200 mt-0.5">
                             {formatDateTime(node.start_time)} &rarr; {formatDateTime(node.end_time)}
                           </div>
                         </div>
 
-                        <span className="text-[11px] px-2.5 py-1 rounded-full font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="text-[11px] font-mono px-3 py-1 rounded-full font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                           {node.status || 'CONFIRMED'}
                         </span>
                       </div>
 
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Connecting Line & Transfer Edge Card */}
                   {outgoingEdge && (
-                    <div className="flex flex-col items-center my-2">
-                      {/* Connecting Line Downward */}
-                      <div className="w-0.5 h-6 bg-slate-700/80" />
+                    <div className="flex flex-col items-center my-3">
+                      {/* Animated Connector Path with Pulse */}
+                      <div className="relative w-0.5 h-8 bg-gradient-to-b from-sky-400 to-indigo-500">
+                        <span className="absolute top-1/2 -left-1 w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.9)] -translate-y-1/2 animate-ping" />
+                      </div>
 
                       {/* Edge Transfer Card */}
-                      <div 
+                      <motion.div 
+                        whileHover={{ scale: 1.01 }}
                         onClick={() => { setSelectedEdgeId(outgoingEdge.id); setSelectedNodeId(null); }}
-                        className={`w-full max-w-xl p-3.5 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between gap-3 ${
+                        className={`w-full max-w-xl p-4 rounded-2xl border text-xs cursor-pointer transition-all duration-300 flex items-center justify-between gap-4 backdrop-blur-xl shadow-lg ${
                           outgoingEdge.risk_level === 'IMPOSSIBLE'
-                            ? 'bg-rose-950/30 border-rose-500/40 text-rose-200'
+                            ? 'bg-rose-950/30 border-rose-500/40 text-rose-200 shadow-rose-950/40'
                             : outgoingEdge.risk_level === 'TIGHT'
-                              ? 'bg-amber-950/30 border-amber-500/40 text-amber-200'
-                              : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                              ? 'bg-amber-950/30 border-amber-500/40 text-amber-200 shadow-amber-950/40'
+                              : 'bg-[#0b1120] border-white/[0.08] text-slate-300 hover:border-sky-500/40'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
-                          <Clock className={`w-4 h-4 ${
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-xl border ${
                             outgoingEdge.risk_level === 'IMPOSSIBLE'
-                              ? 'text-rose-400'
+                              ? 'bg-rose-500/20 border-rose-500/30 text-rose-400'
                               : outgoingEdge.risk_level === 'TIGHT'
-                                ? 'text-amber-400'
-                                : 'text-emerald-400'
-                          }`} />
+                                ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                                : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                          }`}>
+                            <Clock className="w-4 h-4" />
+                          </div>
                           <div>
-                            <div className="font-semibold text-white flex items-center gap-2">
+                            <div className="font-bold text-white flex items-center gap-2 font-display">
                               <span>Connection Buffer: {outgoingEdge.buffer_minutes} mins</span>
-                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800/80 text-slate-400">
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.08] text-slate-300">
                                 {outgoingEdge.transfer_type.replace(/_/g, ' ')}
                               </span>
                             </div>
-                            <div className="text-[11px] text-slate-400 mt-0.5">
+                            <div className="text-[11px] text-slate-400 mt-0.5 font-sans">
                               {outgoingEdge.risk_reason}
                             </div>
                           </div>
@@ -313,10 +329,10 @@ export function JourneyGraphView({
                         <div>
                           {getRiskBadge(outgoingEdge.risk_level)}
                         </div>
-                      </div>
+                      </motion.div>
 
                       {/* Connecting Line Continued */}
-                      <div className="w-0.5 h-6 bg-slate-700/80" />
+                      <div className="w-0.5 h-8 bg-gradient-to-b from-indigo-500 to-sky-400" />
                     </div>
                   )}
 
@@ -324,7 +340,7 @@ export function JourneyGraphView({
               );
             })
           ) : (
-            <div className="p-12 text-center text-xs text-slate-500 italic">
+            <div className="p-16 text-center text-xs text-slate-500 italic font-mono">
               No bookings recorded in journey. Ingest bookings via email in the Inbox tab to build the graph.
             </div>
           )}
@@ -335,3 +351,5 @@ export function JourneyGraphView({
     </div>
   );
 }
+
+export default JourneyGraphView;

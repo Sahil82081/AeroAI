@@ -15,9 +15,11 @@ import {
   History,
   Bell,
   MapPin,
-  Cpu
+  Cpu,
+  Sparkles
 } from 'lucide-react';
-import { JourneyStatusBadge, SkeletonLoader } from '../ui/SaaSPrimitives';
+import { motion } from 'framer-motion';
+import { JourneyStatusBadge, SkeletonLoader, CountUpNumber } from '../ui/SaaSPrimitives';
 
 const DEFAULT_17_STEPS = [
   { step: 1, name: 'Disruption detected (Flight AI-202 +240m)', passed: true },
@@ -211,28 +213,33 @@ export function ExecutiveDashboardPage({
   return (
     <div className="space-y-6">
       {/* Hero SaaS Command Banner */}
-      <div className="rounded-3xl border border-sky-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 p-6 shadow-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+      <div className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 backdrop-blur-2xl p-6 sm:p-7 shadow-glass-card relative overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none -mt-20" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -mb-20" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
           <div className="space-y-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-semibold bg-sky-500/15 text-sky-300 border border-sky-400/30">
+                <Sparkles className="w-3 h-3 text-sky-400 animate-pulse" />
                 Autonomous Control Plane
               </span>
               <JourneyStatusBadge status={journeyStatusMode} />
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono border ${
+                className={`px-3 py-0.5 rounded-full text-xs font-mono font-semibold border ${
                   wsConnected
-                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                    : 'bg-[#04060d] text-slate-400 border-white/[0.08]'
                 }`}
               >
                 {wsConnected ? '● Live WebSocket Stream' : '○ WebSocket Standby'}
               </span>
             </div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display">
               Travel Disruption &amp; Autonomous Recovery Overview
             </h2>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
               Real-time monitoring across active multi-modal itineraries. When a flight or rail disruption occurs, the system evaluates downstream dependencies, solves for the optimal alternative using Google OR-Tools, executes idempotent supplier actions, and dispatches fact-grounded notifications.
             </p>
           </div>
@@ -241,7 +248,7 @@ export function ExecutiveDashboardPage({
             <button
               onClick={onRunEndToEndDemo}
               disabled={runningDemo}
-              className="px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-lg transition cursor-pointer"
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] transition cursor-pointer font-display"
             >
               <Play className="w-4 h-4" />
               <span>
@@ -250,7 +257,7 @@ export function ExecutiveDashboardPage({
             </button>
             <button
               onClick={() => onNavigate('recovery-plan')}
-              className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition cursor-pointer"
+              className="px-4 py-2.5 rounded-2xl bg-[#04060d] hover:bg-white/[0.05] text-slate-200 border border-white/[0.1] hover:border-white/20 text-xs font-semibold flex items-center gap-2 transition cursor-pointer font-display"
             >
               <span>Inspect Recovery Plan</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -259,8 +266,8 @@ export function ExecutiveDashboardPage({
         </div>
 
         {/* Interactive Lifecycle Status Selector */}
-        <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs text-slate-400 flex items-center gap-2">
+        <div className="mt-6 pt-4 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 relative z-10">
+          <div className="text-xs text-slate-400 flex items-center gap-2 font-mono">
             <Activity className="w-3.5 h-3.5 text-sky-400" />
             <span>Preview Journey Lifecycle State Indicator:</span>
           </div>
@@ -269,10 +276,10 @@ export function ExecutiveDashboardPage({
               <button
                 key={st}
                 onClick={() => onChangeJourneyStatusMode(st)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition cursor-pointer border ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer border ${
                   journeyStatusMode === st
-                    ? 'ring-2 ring-sky-400 border-sky-400 bg-slate-800 text-white'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-slate-200'
+                    ? 'ring-2 ring-sky-400 border-sky-400/80 bg-sky-500/15 text-white shadow-[0_0_12px_rgba(56,189,248,0.25)]'
+                    : 'border-white/[0.08] bg-[#04060d]/80 text-slate-400 hover:text-slate-200 hover:border-white/20'
                 }`}
               >
                 <JourneyStatusBadge status={st} size="sm" />
@@ -288,29 +295,31 @@ export function ExecutiveDashboardPage({
           {
             label: 'Active Journeys',
             value: Math.max(journeys.length, 1),
+            isNum: true,
             sub: 'Mumbai → Delhi → Jaipur',
-            color: 'text-sky-400',
+            color: 'text-sky-300',
             targetPage: 'journeys',
           },
           {
             label: 'Upcoming Travel',
             value: '4 Legs',
             sub: 'Flight · Train · Hotel · Tour',
-            color: 'text-indigo-400',
+            color: 'text-indigo-300',
             targetPage: 'journey-details',
           },
           {
             label: 'Current Disruptions',
             value: journeyStatusMode === 'SAFE' ? 0 : Math.max(disruptions.length, 1),
+            isNum: true,
             sub: journeyStatusMode === 'SAFE' ? 'All on schedule' : 'AI-202 Delay (+240m)',
-            color: journeyStatusMode === 'SAFE' ? 'text-emerald-400' : 'text-rose-400',
+            color: journeyStatusMode === 'SAFE' ? 'text-emerald-300' : 'text-rose-400',
             targetPage: 'disruption-center',
           },
           {
             label: 'Affected Bookings',
             value: journeyStatusMode === 'SAFE' ? '0 / 4' : '3 / 4',
             sub: 'Flight, Train & Hotel',
-            color: 'text-amber-400',
+            color: 'text-amber-300',
             targetPage: 'journey-details',
           },
           {
@@ -324,35 +333,44 @@ export function ExecutiveDashboardPage({
                 ? 'Nominal'
                 : 'Action Needed',
             sub: 'Confidence 94% (OR-Tools)',
-            color: 'text-teal-400',
+            color: 'text-teal-300',
             targetPage: 'recovery-plan',
           },
           {
             label: 'Completed Actions',
             value: completedActions.length,
+            isNum: true,
             sub: 'Idempotent Audit Verified',
-            color: 'text-emerald-400',
+            color: 'text-emerald-300',
             targetPage: 'action-history',
           },
           {
             label: 'Pending Actions',
             value: pendingActions.length,
+            isNum: true,
             sub: pendingActions.length === 0 ? 'Queue clear ✓' : 'Awaiting dispatch',
             color: pendingActions.length === 0 ? 'text-slate-300' : 'text-amber-400',
             targetPage: 'action-history',
           },
         ].map((kpi, i) => (
-          <div
+          <motion.div
             key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: i * 0.04 }}
             onClick={() => onNavigate(kpi.targetPage)}
-            className="p-4 rounded-2xl border border-slate-800 bg-slate-900/70 hover:bg-slate-800/60 transition cursor-pointer flex flex-col justify-between"
+            className="p-4 rounded-3xl border border-white/[0.08] bg-[#070b16]/80 hover:bg-[#070b16] hover:border-white/20 transition-all cursor-pointer flex flex-col justify-between shadow-glass-card hover:-translate-y-0.5 group backdrop-blur-2xl"
           >
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
               {kpi.label}
             </div>
-            <div className={`text-xl font-extrabold mt-1.5 ${kpi.color}`}>{kpi.value}</div>
-            <div className="text-[11px] text-slate-500 mt-1 truncate">{kpi.sub}</div>
-          </div>
+            <div className={`text-xl font-black mt-2 font-display ${kpi.color}`}>
+              {kpi.isNum ? <CountUpNumber value={kpi.value} duration={0.8} /> : kpi.value}
+            </div>
+            <div className="text-[11px] text-slate-500 mt-1 truncate font-sans group-hover:text-slate-400 transition-colors">
+              {kpi.sub}
+            </div>
+          </motion.div>
         ))}
       </div>
 
@@ -361,20 +379,20 @@ export function ExecutiveDashboardPage({
         {/* Left 7 Cols: Active Journey Chain & Affected Bookings */}
         <div className="lg:col-span-7 space-y-6">
           {/* Active Journey & Affected Bookings Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 backdrop-blur-2xl p-6 shadow-glass-card space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2 font-display">
                   <MapPin className="w-4 h-4 text-sky-400" />
                   Active Journey &amp; Affected Bookings Breakdown
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5 font-sans">
                   Golden Triangle Express Itinerary &middot; Oct 20, 2026
                 </p>
               </div>
               <button
                 onClick={() => onNavigate('journey-details')}
-                className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer font-mono"
               >
                 <span>Open Journey Details</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -385,17 +403,17 @@ export function ExecutiveDashboardPage({
               {affectedBookingsList.map((b, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-xl border border-slate-800/90 bg-slate-950/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="p-4 rounded-2xl border border-white/[0.08] bg-[#04060d]/80 hover:border-white/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 backdrop-blur-xl"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full bg-white/[0.06] text-slate-300 font-mono text-[10px] font-bold border border-white/[0.08]">
                         {b.type.toUpperCase()} &middot; {b.ref}
                       </span>
-                      <span className="text-xs font-bold text-white">{b.title}</span>
+                      <span className="text-xs font-bold text-white font-display">{b.title}</span>
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono">{b.schedule}</div>
-                    <div className="text-[11px] text-slate-400">{b.impactNote}</div>
+                    <div className="text-[11px] text-sky-300 font-mono">{b.schedule}</div>
+                    <div className="text-[11px] text-slate-400 font-sans">{b.impactNote}</div>
                   </div>
                   <div className="shrink-0">
                     <JourneyStatusBadge status={b.status} />
@@ -406,39 +424,39 @@ export function ExecutiveDashboardPage({
           </div>
 
           {/* Current Disruptions & Recovery Status Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 backdrop-blur-2xl p-6 shadow-glass-card space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 font-display">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 Current Disruptions &amp; Autonomous Recovery Status
               </h3>
               <button
                 onClick={() => onNavigate('disruption-center')}
-                className="text-xs font-semibold text-amber-400 hover:text-amber-300 cursor-pointer"
+                className="text-xs font-semibold text-amber-400 hover:text-amber-300 cursor-pointer font-mono"
               >
                 Disruption Simulator &rarr;
               </button>
             </div>
 
-            <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-950/15 space-y-2 text-xs">
+            <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-950/20 space-y-2 text-xs backdrop-blur-xl shadow-[0_0_20px_rgba(244,63,94,0.1)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-bold text-rose-200">
+                <span className="font-bold text-rose-200 font-display">
                   DISR-AI202-240M &middot; Air India AI-202 Delayed +240 Minutes
                 </span>
-                <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold border border-rose-500/30">
                   CRITICAL SEVERITY
                 </span>
               </div>
-              <p className="text-slate-300 leading-relaxed">
+              <p className="text-slate-300 leading-relaxed font-sans">
                 Flight arrival shifted from <strong>12:00</strong> to <strong>16:00</strong> at New Delhi (DEL), breaking the 90-minute connection window for train <strong>12015-SHT</strong> (departing 13:30).
               </p>
               <div className="pt-2 border-t border-rose-500/20 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                <span className="text-emerald-300 font-semibold">
+                <span className="text-emerald-300 font-semibold font-mono">
                   ✓ Selected Recovery: Indian Railways TRN124 (17:30 &rarr; 21:00, INR 750) + Hotel Late Check-In (21:30)
                 </span>
                 <button
                   onClick={() => onNavigate('recovery-plan')}
-                  className="text-sky-300 hover:underline font-semibold cursor-pointer"
+                  className="text-sky-300 hover:underline font-semibold cursor-pointer font-mono"
                 >
                   View Full Optimization &rarr;
                 </button>
@@ -450,15 +468,15 @@ export function ExecutiveDashboardPage({
         {/* Right 5 Cols: Completed Actions, Pending Actions & Real-Time WebSocket Feed */}
         <div className="lg:col-span-5 space-y-6">
           {/* Completed & Pending Actions Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 backdrop-blur-2xl p-6 shadow-glass-card space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <History className="w-4 h-4 text-teal-400" />
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 font-display">
+                <History className="w-4 h-4 text-sky-400" />
                 Completed &amp; Pending Recovery Actions
               </h3>
               <button
                 onClick={() => onNavigate('action-history')}
-                className="text-xs font-semibold text-teal-400 hover:text-teal-300 cursor-pointer"
+                className="text-xs font-semibold text-sky-400 hover:text-sky-300 cursor-pointer font-mono"
               >
                 Audit Log &rarr;
               </button>
@@ -466,19 +484,19 @@ export function ExecutiveDashboardPage({
 
             {pendingActions.length > 0 && (
               <div className="space-y-2">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400 font-mono">
                   Pending Actions ({pendingActions.length})
                 </div>
                 {pendingActions.map((pa, i) => (
                   <div
                     key={i}
-                    className="p-3 rounded-xl border border-amber-500/30 bg-amber-950/20 text-xs flex items-center justify-between gap-2"
+                    className="p-3.5 rounded-2xl border border-amber-500/30 bg-amber-950/20 text-xs flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
                   >
                     <div>
                       <div className="font-bold text-amber-200 font-mono">{pa.action_type}</div>
-                      <div className="text-[11px] text-slate-300">{pa.target}</div>
+                      <div className="text-[11px] text-slate-300 font-sans">{pa.target}</div>
                     </div>
-                    <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono border border-amber-500/30">
                       PENDING
                     </span>
                   </div>
@@ -487,20 +505,20 @@ export function ExecutiveDashboardPage({
             )}
 
             <div className="space-y-2">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 font-mono">
                 Completed Actions ({completedActions.length})
               </div>
               <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
                 {completedActions.slice(0, 6).map((ca, i) => (
                   <div
                     key={i}
-                    className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 text-xs flex items-center justify-between gap-2"
+                    className="p-3.5 rounded-2xl border border-white/[0.08] bg-[#04060d]/80 text-xs flex items-center justify-between gap-2 hover:border-white/20 transition-all"
                   >
                     <div>
                       <div className="font-bold text-slate-200 font-mono">{ca.action_type}</div>
-                      <div className="text-[11px] text-slate-400">Booking: {ca.booking_id}</div>
+                      <div className="text-[11px] text-slate-400 font-sans">Booking: {ca.booking_id}</div>
                     </div>
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold shadow-[0_0_10px_rgba(16,185,129,0.15)]">
                       ✓ {ca.status === 'IDEMPOTENT_REPLAY_SKIPPED_DUPLICATE' ? 'IDEMPOTENT' : 'COMPLETED'}
                     </span>
                   </div>
@@ -510,15 +528,15 @@ export function ExecutiveDashboardPage({
           </div>
 
           {/* Live WebSocket Recovery Stream Ticker */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 backdrop-blur-2xl p-6 shadow-glass-card space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 font-display">
                 <Zap className="w-4 h-4 text-indigo-400" />
                 Real-Time WebSocket Stream
               </h3>
               <button
                 onClick={() => onNavigate('disruption-center')}
-                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer font-mono"
               >
                 Kafka Topics &rarr;
               </button>
@@ -541,10 +559,10 @@ export function ExecutiveDashboardPage({
                 .map((m, idx) => (
                   <div
                     key={idx}
-                    className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between text-xs"
+                    className="px-3.5 py-2 rounded-2xl bg-[#04060d]/80 border border-white/[0.08] flex items-center justify-between text-xs"
                   >
-                    <span className="font-semibold text-slate-200">"{m.ui_message}"</span>
-                    <span className="text-[10px] font-mono text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded">
+                    <span className="font-semibold text-slate-200 font-sans">"{m.ui_message}"</span>
+                    <span className="text-[10px] font-mono text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full">
                       {m.topic}
                     </span>
                   </div>
@@ -555,28 +573,29 @@ export function ExecutiveDashboardPage({
       </div>
 
       {/* Stage 12: 17-Step End-to-End Verification & REAL vs. SIMULATED Architecture Matrix */}
-      <div className="rounded-2xl border border-emerald-500/30 bg-slate-900/70 p-6 space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl border border-emerald-500/30 bg-[#070b16]/90 backdrop-blur-2xl p-6 sm:p-7 shadow-glass-card space-y-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                 Stage 12 E2E Verification Suite
               </span>
               <span className="text-xs font-mono text-emerald-400 font-bold">
                 17 / 17 Canonical Steps Verified ✓
               </span>
             </div>
-            <h3 className="text-base font-bold text-white mt-1">
+            <h3 className="text-base sm:text-lg font-bold text-white mt-1.5 font-display tracking-tight">
               End-to-End Golden Triangle Scenario &amp; REAL vs. SIMULATED Subsystem Matrix
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 font-sans mt-0.5">
               Flight AI-202 (Mumbai &rarr; Delhi 10:00&ndash;12:00, delayed +240m to 16:00) &middot; Train 12015-SHT (13:30 missed &rarr; rebooked) &middot; Jaipur Hotel (updated) &middot; Next-Day 09:00 Tour (unchanged)
             </p>
           </div>
           <button
             onClick={handleRunStage12Scenario}
             disabled={runningStage12}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-lg transition cursor-pointer shrink-0"
+            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition cursor-pointer shrink-0 font-display"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>
@@ -587,28 +606,28 @@ export function ExecutiveDashboardPage({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 relative z-10">
           {(e2eResult?.steps_checklist || DEFAULT_17_STEPS).map((s) => (
             <div
               key={s.step}
-              className="px-3 py-2 rounded-xl border border-emerald-500/25 bg-slate-950/75 flex items-center gap-2.5 text-xs"
+              className="px-3.5 py-2.5 rounded-2xl border border-emerald-500/20 bg-[#04060d]/90 flex items-center gap-2.5 text-xs hover:border-emerald-500/40 transition-colors"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <div className="truncate">
                 <span className="font-mono text-[10px] text-slate-400 mr-1.5">#{s.step}</span>
-                <span className="text-slate-200 font-medium">{s.name}</span>
+                <span className="text-slate-200 font-medium font-sans">{s.name}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
-          <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-950/15 space-y-2">
-            <div className="text-xs font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
-              <Cpu className="w-3.5 h-3.5" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/[0.08] relative z-10">
+          <div className="p-4 sm:p-5 rounded-2xl border border-sky-500/30 bg-sky-950/20 space-y-2 backdrop-blur-xl">
+            <div className="text-xs font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2 font-mono">
+              <Cpu className="w-3.5 h-3.5 text-sky-400" />
               <span>REAL Algorithmic &amp; Event Subsystems</span>
             </div>
-            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside font-sans">
               <li>NetworkX Directed Acyclic Journey Graph &amp; Risk Engine (SAFE / TIGHT / IMPOSSIBLE)</li>
               <li>Downstream Impact Analysis Agent &amp; Natural-Language Cascade Reasoning</li>
               <li>Google OR-Tools CP-SAT Mathematical Constraint Optimizer (0-1 ILP)</li>
@@ -618,12 +637,12 @@ export function ExecutiveDashboardPage({
             </ul>
           </div>
 
-          <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-950/15 space-y-2">
-            <div className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5" />
+          <div className="p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-amber-950/20 space-y-2 backdrop-blur-xl">
+            <div className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2 font-mono">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
               <span>SIMULATED Mock Supplier Ecosystem</span>
             </div>
-            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside font-sans">
               <li>Mock Airline Supplier REST API (/flights/search, /bookings/rebook, cancel, refund)</li>
               <li>Mock Railway Supplier REST API (/trains/search, /bookings/rebook, cancel, refund)</li>
               <li>Mock Bus Supplier REST API (/buses/search, /bookings/rebook, cancel, refund)</li>
