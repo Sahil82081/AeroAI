@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -15,7 +15,8 @@ import {
   RefreshCw,
   User,
   LogIn,
-  ChevronRight
+  ChevronRight,
+  Plane
 } from 'lucide-react';
 import { api } from '../services/api';
 import { InboxView } from './InboxView';
@@ -35,7 +36,7 @@ import {
 } from './ui/SaaSPrimitives';
 
 const TOP_TABS = [
-  { id: 'intelligence', label: 'Flight Intelligence', icon: Bot, badge: 'Live AI' },
+  { id: 'intelligence', label: 'Flight Intelligence & Agent', icon: Plane, badge: 'Live AI' },
   { id: 'guided', label: 'My Journey', icon: Sparkles },
   { id: 'inbox', label: 'Email Parser', icon: Mail },
   { id: 'recovery-plan', label: 'AI Optimizer & Graph', icon: Network },
@@ -65,6 +66,33 @@ export function DashboardShell({
   const [logsSubTab, setLogsSubTab] = useState('emails');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const navBarRef = useRef(null);
+
+  // Dynamically measure navbar height to guarantee main content is never overlapped across zoom / wraps
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (navBarRef.current) {
+        const h = navBarRef.current.offsetHeight;
+        if (h > 0) {
+          document.documentElement.style.setProperty('--header-height', `${h}px`);
+        }
+      }
+    };
+
+    updateHeaderHeight();
+
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== 'undefined' && navBarRef.current) {
+      resizeObserver = new ResizeObserver(updateHeaderHeight);
+      resizeObserver.observe(navBarRef.current);
+    }
+
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => {
+      if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
+  }, []);
 
   const currentJourney = journeys[0];
 
@@ -103,7 +131,7 @@ export function DashboardShell({
       });
       await fetchActionHistory();
       addToast(
-        'Recovery Actions Executed ✓',
+        'Recovery Actions Executed',
         `Plan ${res.plan_id} completed with status: ${res.execution_status}`,
         'success'
       );
@@ -115,40 +143,41 @@ export function DashboardShell({
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans relative selection:bg-sky-500/30 selection:text-sky-200">
+    <div className="min-h-screen bg-surface-container-lowest text-on-surface font-body-md antialiased relative selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden flex flex-col justify-between">
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
 
-      {/* Top Mission Control Sticky Bar */}
-      <header className="border-b border-white/[0.08] bg-[#030712]/80 backdrop-blur-xl sticky top-0 z-40 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          
-          {/* Brand Logo & Telemetry Indicator */}
+      {/* Ambient Background Glows */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary-container/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[160px] pointer-events-none" />
+
+      {/* Top Navigation Header - Refined Production Enterprise SaaS */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-surface-container-lowest/90 backdrop-blur-xl border-b border-surface-container-high/60 transition-all">
+        <div
+          ref={navBarRef}
+          className="max-w-7xl mx-auto min-h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sm:gap-6"
+        >
+          {/* Brand Logo & Tag */}
           <div
             onClick={() => setActivePage('intelligence')}
-            className="flex items-center gap-3 cursor-pointer group shrink-0"
+            className="flex items-center gap-3 shrink-0 cursor-pointer group"
           >
-            <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500/20 via-sky-600/10 to-indigo-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-inner group-hover:scale-105 group-hover:border-sky-400/60 transition-all duration-300">
-                <Sparkles className="w-4 h-4 text-sky-300 group-hover:rotate-12 transition-transform duration-300" />
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#030712] shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            <div className="w-8.5 h-8.5 rounded-lg bg-gradient-to-br from-surface-container-high to-surface-container flex items-center justify-center text-primary-container border border-primary-container/30 shadow-sm group-hover:scale-105 group-hover:border-primary-container/60 transition-all duration-200">
+              <Plane className="w-4 h-4 text-primary-container group-hover:rotate-12 transition-transform duration-200" />
             </div>
 
-            <div>
-              <div className="font-display font-extrabold text-base tracking-tight flex items-center gap-2">
-                <span className="bg-gradient-to-r from-white via-sky-200 to-sky-400 bg-clip-text text-transparent">
-                  AeroAI
-                </span>
-                <span className="text-white/20 font-normal">/</span>
-                <span className="text-xs font-mono font-medium text-slate-400 hidden sm:inline tracking-wider uppercase">
-                  Mission Control
-                </span>
-              </div>
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <span className="font-headline-md text-base sm:text-lg font-bold tracking-tight text-on-surface">
+                AeroAI
+              </span>
+              <span className="text-outline/30 font-light text-xs hidden sm:inline">|</span>
+              <span className="font-label-caps text-[10px] uppercase tracking-wider text-primary px-2 py-0.5 rounded-md bg-surface-container-high/80 border border-primary/20 backdrop-blur-sm hidden md:inline">
+                Disruption Recovery
+              </span>
             </div>
           </div>
 
-          {/* Center Tabs with Animated Sliding Pill */}
-          <nav className="hidden lg:flex items-center gap-1 p-1 rounded-2xl bg-[#070b16]/90 border border-white/[0.08] backdrop-blur-md relative shadow-inner">
+          {/* Center Tabs with Proper Breathing Room */}
+          <nav className="hidden xl:flex items-center gap-1.5 p-1 bg-surface-container-low/90 backdrop-blur-md rounded-xl border border-surface-container-high/60 shadow-sm">
             {TOP_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive =
@@ -160,25 +189,22 @@ export function DashboardShell({
                 <button
                   key={tab.id}
                   onClick={() => setActivePage(tab.id)}
-                  className={`relative px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all duration-200 cursor-pointer z-10 ${
-                    isActive ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all text-xs font-semibold cursor-pointer whitespace-nowrap shrink-0 ${
+                    isActive
+                      ? 'text-on-primary-container bg-primary-container shadow-sm'
+                      : 'text-on-surface-variant hover:bg-surface-container-high/70 hover:text-on-surface'
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabPill"
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-sky-600/90 to-indigo-600/90 border border-sky-400/40 shadow-[0_0_20px_rgba(14,165,233,0.35)] -z-10"
-                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                    />
-                  )}
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-200' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-on-primary-container' : 'text-on-surface-variant'}`} />
                   <span>{tab.label}</span>
                   {tab.badge && (
-                    <span className="relative flex items-center ml-0.5">
-                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-sky-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full text-[9px] font-mono px-1.5 py-0.2 bg-sky-400/20 text-sky-300 border border-sky-400/40 font-bold uppercase tracking-wider">
-                        {tab.badge}
-                      </span>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider ml-1 ${
+                      isActive
+                        ? 'bg-surface-container-lowest text-primary-container'
+                        : 'bg-surface-container-high text-primary-fixed-dim'
+                    }`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse" />
+                      {tab.badge}
                     </span>
                   )}
                 </button>
@@ -186,22 +212,30 @@ export function DashboardShell({
             })}
           </nav>
 
-          {/* Right Status & Mobile Toggle */}
-          <div className="flex items-center gap-2.5">
-            {/* System Telemetry Pill */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-[#070b16] border border-white/[0.08] text-[11px] font-mono text-slate-400">
-              <span className={`w-2 h-2 rounded-full ${health?.status === 'offline' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'}`} />
-              <span className="text-slate-300 font-medium">SYS: OK</span>
-            </div>
+          {/* Right Status Controls with Clear Gaps */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Ask Policy AI Top CTA */}
+            <button
+              onClick={() => setActivePage('chatbot')}
+              className="relative hidden sm:flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary border border-primary/25 hover:border-primary/50 transition-all text-xs font-semibold group cursor-pointer h-9 shadow-sm whitespace-nowrap shrink-0"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-primary group-hover:scale-105 transition-transform" />
+              <span className="font-telemetry-data">Ask Policy AI</span>
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-container" />
+              </span>
+            </button>
 
-            {/* Quick Traveler Profile / Switcher button */}
+            {/* Quick Traveler Profile Button */}
             <button
               onClick={() => setShowAuthModal(true)}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/[0.08] text-xs transition cursor-pointer"
+              className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center shadow-sm p-0.5 ring-1 ring-primary/40 cursor-pointer hover:scale-105 transition-transform"
               title="View Traveler Credentials or Switch Profile"
             >
-              <User className="w-3.5 h-3.5 text-sky-400" />
-              <span className="truncate max-w-[100px]">{user?.full_name || 'Aarav Sharma'}</span>
+              <div className="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
             </button>
 
             {/* Refresh Sync Button */}
@@ -210,16 +244,16 @@ export function DashboardShell({
                 onClick={onRefresh}
                 disabled={loading}
                 title="Sync Live Radar & Graph"
-                className="p-2 rounded-xl bg-[#070b16] hover:bg-slate-800 text-slate-400 hover:text-sky-300 border border-white/[0.08] transition cursor-pointer"
+                className="w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary border border-primary/20 hover:border-primary/50 transition flex items-center justify-center cursor-pointer shadow-sm"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary-container' : ''}`} />
               </button>
             )}
 
             {/* Mobile Hamburger Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl bg-[#070b16] text-slate-400 hover:text-white border border-white/[0.08] cursor-pointer"
+              className="xl:hidden w-9 h-9 rounded-lg bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-surface-container-high flex items-center justify-center cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -235,7 +269,7 @@ export function DashboardShell({
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:hidden border-t border-white/[0.08] bg-[#070b16]/95 backdrop-blur-2xl overflow-hidden px-4 py-3 space-y-1"
+              className="xl:hidden border-t border-surface-container-high/50 bg-surface-container-lowest/95 backdrop-blur-2xl overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto px-4 py-3 space-y-1.5"
             >
               {TOP_TABS.map((tab) => {
                 const Icon = tab.icon;
@@ -247,10 +281,10 @@ export function DashboardShell({
                       setActivePage(tab.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full px-3 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition cursor-pointer ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition cursor-pointer ${
                       isActive
-                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-semibold shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                        ? 'bg-primary-container text-on-primary-container font-semibold shadow-md'
+                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -258,7 +292,7 @@ export function DashboardShell({
                       <span>{tab.label}</span>
                     </div>
                     {tab.badge && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-400/20 text-sky-200 border border-sky-400/30">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-container text-primary-container border border-primary/20">
                         {tab.badge}
                       </span>
                     )}
@@ -266,14 +300,14 @@ export function DashboardShell({
                 );
               })}
 
-              <div className="pt-2 mt-2 border-t border-white/[0.08] flex items-center justify-between text-xs text-slate-400 px-2">
+              <div className="pt-2 mt-2 border-t border-surface-container-high/40 flex items-center justify-between text-xs text-on-surface-variant px-2">
                 <span className="font-mono text-[11px]">User: {user?.email || 'traveler@example.com'}</span>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
                     setShowAuthModal(true);
                   }}
-                  className="text-sky-400 hover:underline flex items-center gap-1 font-semibold"
+                  className="text-primary hover:underline flex items-center gap-1 font-semibold"
                 >
                   <LogIn className="w-3.5 h-3.5" /> Sign In Screen
                 </button>
@@ -283,163 +317,170 @@ export function DashboardShell({
         </AnimatePresence>
       </header>
 
-      {/* Main Content View with Animated Tab Fade/Slide Transitions */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        <ErrorAlertBanner error={error} onRetry={onRefresh} />
+      {/* Main Content View */}
+      <main
+        style={{ paddingTop: 'calc(var(--header-height, 64px) + 24px)' }}
+        className="flex-1 w-full pb-10 bg-transparent"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+          <ErrorAlertBanner error={error} onRetry={onRefresh} />
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activePage}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* PRIMARY TAB: FLIGHT INTELLIGENCE & UNIFIED AGENT */}
-            {activePage === 'intelligence' && <AeroAIFlightIntelligenceView />}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activePage}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* PRIMARY TAB: FLIGHT INTELLIGENCE & UNIFIED AGENT */}
+              {activePage === 'intelligence' && <AeroAIFlightIntelligenceView />}
 
-            {/* TAB 1: MY JOURNEY (Primary Clean Workspace) */}
-            {activePage === 'guided' && (
-              <SimpleGuidedStoryMode
-                onSync={() => {
-                  if (onRefresh) onRefresh();
-                }}
-                onRunBackendE2E={() => {
-                  fetchActionHistory();
-                  if (onRefresh) onRefresh();
-                  addToast(
-                    'Trip Recovered ✓',
-                    'Updated missed connections and generated notifications.',
-                    'success'
-                  );
-                }}
-                onOpenAdvancedPage={(pageId) => setActivePage(pageId)}
-              />
-            )}
-
-            {/* TAB 2: EMAIL PARSER */}
-            {activePage === 'inbox' && (
-              <InboxView
-                inboxEmails={inboxEmails}
-                sampleEmails={sampleEmails}
-                onForwardEmail={async (payload) => {
-                  await onForwardEmail(payload);
-                  addToast(
-                    'Booking Email Parsed ✓',
-                    'Added booking to your journey.',
-                    'success'
-                  );
-                }}
-                forwardingLoading={forwardingLoading}
-              />
-            )}
-
-            {/* TAB 3: AI OPTIMIZER & GRAPH */}
-            {(activePage === 'recovery-plan' || activePage === 'journey-graph') && (
-              <div className="space-y-6">
-                <div className="flex flex-wrap items-center gap-2 p-1 rounded-2xl bg-[#070b16]/75 border border-white/[0.08] backdrop-blur-md w-fit">
-                  <button
-                    onClick={() => setOptimizerSubTab('optimizer')}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                      optimizerSubTab === 'optimizer'
-                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    OR-Tools Optimization Math
-                  </button>
-                  <button
-                    onClick={() => setOptimizerSubTab('graph')}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                      optimizerSubTab === 'graph'
-                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    NetworkX Journey Graph
-                  </button>
-                  <button
-                    onClick={() => setOptimizerSubTab('suppliers')}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                      optimizerSubTab === 'suppliers'
-                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    Mock Supplier Inventory
-                  </button>
-                </div>
-
-                {optimizerSubTab === 'optimizer' && (
-                  <RecoveryPlanPage
-                    onExecuteRecoveryActions={handleExecuteRecoveryPlanActions}
-                    executingActions={runningDemo}
-                    actionExecutionResult={actionHistory}
-                  />
-                )}
-                {optimizerSubTab === 'graph' && (
-                  <JourneyGraphView
-                    journey={currentJourney}
-                    graphData={graphData}
-                    loading={loading}
-                    onRefreshGraph={onRefreshGraph}
-                  />
-                )}
-                {optimizerSubTab === 'suppliers' && <SupplierEcosystemView />}
-              </div>
-            )}
-
-            {/* TAB 4: SENT EMAILS & LOGS */}
-            {(activePage === 'notifications' || activePage === 'action-history') && (
-              <div className="space-y-6">
-                <div className="flex flex-wrap items-center gap-2 p-1 rounded-2xl bg-[#070b16]/75 border border-white/[0.08] backdrop-blur-md w-fit">
-                  <button
-                    onClick={() => setLogsSubTab('emails')}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                      logsSubTab === 'emails'
-                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    Sent Emails
-                  </button>
-                  <button
-                    onClick={() => setLogsSubTab('audit')}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                      logsSubTab === 'audit'
-                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    Action Execution Audit Log
-                  </button>
-                </div>
-
-                {logsSubTab === 'emails' ? <NotificationInboxView /> : <ActionExecutionView />}
-              </div>
-            )}
-
-            {/* TAB 5: POLICY CHATBOT */}
-            {activePage === 'chatbot' && (
-              <div className="space-y-4">
-                <PolicyAssistantChat
-                  activeJourneyContext={
-                    currentJourney
-                      ? {
-                          journey_id: currentJourney.id,
-                          airline: 'Air India',
-                          flight_number: 'AI-202',
-                          origin: 'Mumbai',
-                          destination: 'Delhi',
-                          delay_minutes: 240,
-                        }
-                      : null
-                  }
+              {/* TAB 1: MY JOURNEY (Primary Clean Workspace) */}
+              {activePage === 'guided' && (
+                <SimpleGuidedStoryMode
+                  onSync={() => {
+                    if (onRefresh) onRefresh();
+                  }}
+                  onRunBackendE2E={() => {
+                    fetchActionHistory();
+                    if (onRefresh) onRefresh();
+                    addToast(
+                      'Trip Recovered',
+                      'Updated missed connections and generated notifications.',
+                      'success'
+                    );
+                  }}
+                  onOpenAdvancedPage={(pageId) => setActivePage(pageId)}
                 />
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              )}
+
+              {/* TAB 2: EMAIL PARSER */}
+              {activePage === 'inbox' && (
+                <InboxView
+                  inboxEmails={inboxEmails}
+                  sampleEmails={sampleEmails}
+                  onForwardEmail={async (payload) => {
+                    await onForwardEmail(payload);
+                    addToast(
+                      'Booking Email Parsed',
+                      'Added booking to your journey.',
+                      'success'
+                    );
+                  }}
+                  forwardingLoading={forwardingLoading}
+                />
+              )}
+
+              {/* TAB 3: AI OPTIMIZER & GRAPH */}
+              {(activePage === 'recovery-plan' || activePage === 'journey-graph') && (
+                <div className="space-y-6">
+                  {/* Segmented Viewport Switcher */}
+                  <div className="inline-flex items-center flex-wrap p-1.5 rounded-2xl bg-surface-container-low/90 backdrop-blur-xl border border-surface-container-high shadow-xl gap-2 shrink-0">
+                    <button
+                      onClick={() => setOptimizerSubTab('optimizer')}
+                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                        optimizerSubTab === 'optimizer'
+                          ? 'bg-surface-container-high text-primary-container shadow-md border border-primary/20 font-bold'
+                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 font-medium'
+                      }`}
+                    >
+                      OR-Tools Optimization Math
+                    </button>
+                    <button
+                      onClick={() => setOptimizerSubTab('graph')}
+                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                        optimizerSubTab === 'graph'
+                          ? 'bg-surface-container-high text-primary-container shadow-md border border-primary/20 font-bold'
+                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 font-medium'
+                      }`}
+                    >
+                      NetworkX Journey Graph
+                    </button>
+                    <button
+                      onClick={() => setOptimizerSubTab('suppliers')}
+                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                        optimizerSubTab === 'suppliers'
+                          ? 'bg-surface-container-high text-primary-container shadow-md border border-primary/20 font-bold'
+                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 font-medium'
+                      }`}
+                    >
+                      Mock Supplier Inventory
+                    </button>
+                  </div>
+
+                  {optimizerSubTab === 'optimizer' && (
+                    <RecoveryPlanPage
+                      onExecuteRecoveryActions={handleExecuteRecoveryPlanActions}
+                      executingActions={runningDemo}
+                      actionExecutionResult={actionHistory}
+                    />
+                  )}
+                  {optimizerSubTab === 'graph' && (
+                    <JourneyGraphView
+                      journey={currentJourney}
+                      graphData={graphData}
+                      loading={loading}
+                      onRefreshGraph={onRefreshGraph}
+                    />
+                  )}
+                  {optimizerSubTab === 'suppliers' && <SupplierEcosystemView />}
+                </div>
+              )}
+
+              {/* TAB 4: SENT EMAILS & LOGS */}
+              {(activePage === 'notifications' || activePage === 'action-history') && (
+                <div className="space-y-6">
+                  {/* Segmented Viewport Switcher */}
+                  <div className="inline-flex items-center flex-wrap p-1.5 rounded-2xl bg-surface-container-low/90 backdrop-blur-xl border border-surface-container-high shadow-xl gap-2 shrink-0">
+                    <button
+                      onClick={() => setLogsSubTab('emails')}
+                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                        logsSubTab === 'emails'
+                          ? 'bg-surface-container-high text-primary-container shadow-md border border-primary/20 font-bold'
+                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 font-medium'
+                      }`}
+                    >
+                      Sent Emails
+                    </button>
+                    <button
+                      onClick={() => setLogsSubTab('audit')}
+                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                        logsSubTab === 'audit'
+                          ? 'bg-surface-container-high text-primary-container shadow-md border border-primary/20 font-bold'
+                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 font-medium'
+                      }`}
+                    >
+                      Action Execution Audit Log
+                    </button>
+                  </div>
+
+                  {logsSubTab === 'emails' ? <NotificationInboxView /> : <ActionExecutionView />}
+                </div>
+              )}
+
+              {/* TAB 5: POLICY CHATBOT */}
+              {activePage === 'chatbot' && (
+                <div className="space-y-4">
+                  <PolicyAssistantChat
+                    activeJourneyContext={
+                      currentJourney
+                        ? {
+                            journey_id: currentJourney.id,
+                            airline: 'Air India',
+                            flight_number: 'AI-202',
+                            origin: 'Mumbai',
+                            destination: 'Delhi',
+                            delay_minutes: 240,
+                          }
+                        : null
+                    }
+                  />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
 
       {/* Floating Chatbot Beacon Button */}
@@ -450,32 +491,45 @@ export function DashboardShell({
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setActivePage('chatbot')}
-          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-sky-600 via-sky-500 to-indigo-600 text-white px-4 py-3 rounded-full shadow-[0_12px_32px_rgba(14,165,233,0.4)] flex items-center gap-2.5 border border-sky-300/40 cursor-pointer group"
+          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary-container to-primary-fixed-dim text-on-primary px-4 py-3 rounded-full shadow-[0_0_25px_rgba(0,229,255,0.4)] flex items-center gap-2.5 border border-primary/30 cursor-pointer group hover:brightness-110 transition-all"
           title="Open Airline Policy & Legal Rights AI"
         >
           <div className="relative">
-            <Bot className="w-5 h-5 text-sky-100 group-hover:rotate-12 transition-transform duration-300" />
-            <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-ping" />
-            <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5" />
+            <Bot className="w-5 h-5 text-on-primary group-hover:rotate-12 transition-transform duration-300" />
+            <span className="w-2 h-2 rounded-full bg-primary-container absolute -top-0.5 -right-0.5 shadow-[0_0_8px_rgba(0,229,255,0.9)] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-primary-container absolute -top-0.5 -right-0.5" />
           </div>
-          <span className="text-xs font-bold tracking-wide font-display">Ask Policy AI</span>
+          <span className="text-xs font-bold tracking-wide font-headline-md">Ask Policy AI</span>
         </motion.button>
       )}
 
-      {/* Modal to view / test the Cinematic LoginPage */}
+      {/* Footer matching Google Stitch Reference */}
+      <footer className="w-full bg-surface-container-lowest border-t border-surface-container-high/40 py-6 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-outline font-body-sm text-body-sm">
+          <div>© 2025 AeroAI Avionics & Flight Recovery Intelligence. All rights reserved.</div>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-2 text-on-surface-variant font-mono text-xs px-3 py-1 rounded-full bg-surface-container border border-surface-container-high">
+              <span className="w-2 h-2 rounded-full bg-primary-container animate-ping" />
+              OPS Telemetry Engine: Online (Latency 14ms)
+            </span>
+          </div>
+        </div>
+      </footer>
+
+      {/* Modal for LoginPage */}
       <AnimatePresence>
         {showAuthModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030712]/80 backdrop-blur-md overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25 }}
-              className="relative w-full max-w-5xl my-8"
+              className="relative w-full max-w-5xl my-8 bg-surface-container-low border border-surface-container-high rounded-2xl shadow-2xl overflow-hidden"
             >
               <button
                 onClick={() => setShowAuthModal(false)}
-                className="absolute top-4 right-4 z-50 p-2 rounded-xl bg-slate-900/90 text-slate-400 hover:text-white border border-white/10 transition cursor-pointer"
+                className="absolute top-4 right-4 z-50 p-2 rounded-xl bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-surface-container-high transition cursor-pointer"
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -486,7 +540,7 @@ export function DashboardShell({
                 onLogin={async (email, password) => {
                   if (onRefresh) await onRefresh();
                   setShowAuthModal(false);
-                  addToast('Authenticated ✓', `Signed in as ${email}`, 'success');
+                  addToast('Authenticated', `Signed in as ${email}`, 'success');
                 }}
                 onContinueAsCurrent={() => {
                   setShowAuthModal(false);
@@ -499,4 +553,3 @@ export function DashboardShell({
     </div>
   );
 }
-

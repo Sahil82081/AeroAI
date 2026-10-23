@@ -289,6 +289,30 @@ export const apiService = {
     const res = await apiClient.post('/recovery/live-workspace/recover');
     return res.data;
   },
+  approveLiveWorkspaceRecovery: async () => {
+    const res = await apiClient.post('/recovery/live-workspace/approve');
+    return res.data;
+  },
+  executeLiveWorkspaceRecovery: async () => {
+    const res = await apiClient.post('/recovery/live-workspace/execute');
+    return res.data;
+  },
+  approveAndExecuteLiveWorkspaceRecovery: async () => {
+    const res = await apiClient.post('/recovery/live-workspace/approve-and-execute');
+    return res.data;
+  },
+  rejectLiveWorkspaceRecovery: async (reason) => {
+    const res = await apiClient.post('/recovery/live-workspace/reject', null, { params: { reason } });
+    return res.data;
+  },
+  rejectAndReplanLiveWorkspaceRecovery: async (payload = {}) => {
+    const res = await apiClient.post('/recovery/live-workspace/reject-and-replan', payload);
+    return res.data;
+  },
+  rejectAndReplanRecoveryPlan: async (planId, payload = {}) => {
+    const res = await apiClient.post(`/recovery/plans/${planId}/reject-and-replan`, payload);
+    return res.data;
+  },
   getRealTransportCatalog: async () => {
     const res = await apiClient.get('/recovery/live-workspace/real-catalog');
     return res.data;

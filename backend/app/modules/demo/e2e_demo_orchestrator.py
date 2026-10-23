@@ -273,21 +273,29 @@ class EndToEndDemoOrchestrator:
             )
         )
 
-        # Step 11, 12, 13, 14: Ensure recovery actions are executed & update database bookings to reflect final recovered journey
+        # Step 11, 12, 13, 14: Explicitly execute approved recovery plan & update database bookings
+        plan_exec_input = {
+            "plan_id": f"PLAN-E2E-JOURNEY-{journey.id}",
+            "original_booking_id": "12015-SHT",
+            "original_transport_id": "TRN123",
+            "original_price": 800.0,
+            "new_transport_id": selected_train["transport_id"],
+            "hotel_booking_id": "HTL-JAI-101",
+            "hotel_id": "HTL101",
+            "new_check_in": "2026-10-20T22:30:00",
+            "passenger_name": "Aarav Sharma",
+            "traveler_email": "aarav.sharma@example.com",
+            "contact_email": "frontdesk@heritagepalacejaipur.com",
+            "selected_option": selected_train,
+            "journey_id": journey.id,
+            "status": "APPROVED",
+        }
+        event_pipeline.trigger_plan_execution(
+            recovery_plan=plan_exec_input,
+            correlation_id=f"corr-e2e-exec-{journey.id}",
+        )
         action_exec_summary = recovery_action_executor.execute_recovery_plan(
-            plan_input={
-                "plan_id": f"PLAN-E2E-JOURNEY-{journey.id}",
-                "original_booking_id": "12015-SHT",
-                "original_transport_id": "TRN123",
-                "original_price": 800.0,
-                "new_transport_id": selected_train["transport_id"],
-                "hotel_booking_id": "HTL-JAI-101",
-                "hotel_id": "HTL101",
-                "new_check_in": "2026-10-20T22:30:00",
-                "passenger_name": "Aarav Sharma",
-                "traveler_email": "aarav.sharma@example.com",
-                "contact_email": "frontdesk@heritagepalacejaipur.com",
-            }
+            plan_input=plan_exec_input
         )
 
         # Step 15 & 16: Update Train & Hotel bookings in DB while leaving Next-Day Tour unchanged, then recompute Final Journey Graph

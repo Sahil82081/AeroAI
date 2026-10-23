@@ -54,10 +54,38 @@ async def kafka_events_websocket(websocket: WebSocket):
 @router.post("/disruption-pipeline")
 def trigger_kafka_disruption_pipeline(req: EventDrivenDisruptionRequest) -> Dict[str, Any]:
     """
-    Triggers the complete event-driven disruption cascade through Kafka:
-    Disruption API -> Kafka -> Impact Agent -> Kafka -> Recovery Agent -> Kafka -> Action Agent -> Kafka -> Notification Agent
+    Triggers the event-driven disruption recovery pipeline:
+    Disruption API -> Kafka -> Impact Agent -> Kafka -> Recovery Planner (STOP by default)
     """
     return event_pipeline.trigger_disruption_pipeline(req)
+
+
+class ExecutePlanKafkaRequest(BaseModel):
+    recovery_plan: Dict[str, Any]
+    correlation_id: Optional[str] = None
+    step_delay_ms: int = Field(default=0, ge=0, le=2000)
+    max_retries: int = Field(default=3, ge=0, le=5)
+
+
+@router.post("/execute-plan")
+def execute_recovery_plan_via_kafka(req: ExecutePlanKafkaRequest) -> Dict[str, Any]:
+    """
+    [EXECUTION] Explicitly executes an approved recovery plan via Kafka event dispatch:
+    Approved Plan -> Kafka (`action.requested`) -> Action Agent -> Kafka (`action.completed`, `notification.requested`)
+    Strict Human Approval Gate: Verifies that recovery_plan['status'] === APPROVED.
+    """
+    plan_status = req.recovery_plan.get("status")
+    if plan_status and str(plan_status).upper() not in ("APPROVED", "EXECUTING", "COMPLETED"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Execution forbidden: Recovery plan has status '{plan_status}'. Plan must be APPROVED before execution."
+        )
+    return event_pipeline.trigger_plan_execution(
+        recovery_plan=req.recovery_plan,
+        correlation_id=req.correlation_id,
+        step_delay_ms=req.step_delay_ms,
+        max_retries=req.max_retries,
+    )
 
 
 @router.post("/publish")

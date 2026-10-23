@@ -126,35 +126,35 @@ export function TravelNewsView({
   };
 
   return (
-    <div className={`space-y-6 ${embeddedMode ? 'p-0' : ''}`}>
+    <div className={`space-y-4 ${embeddedMode ? 'p-0' : ''}`}>
       {/* Header & Search Bar */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="rounded-3xl border border-white/[0.08] bg-[#070b16]/80 p-6 shadow-glass-card backdrop-blur-2xl relative overflow-hidden"
+        transition={{ duration: 0.3 }}
+        className="rounded-xl border border-white/[0.08] bg-[#070b16]/80 p-3.5 sm:p-4 shadow-sm backdrop-blur-2xl relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 relative z-10">
           <div>
-            <div className="flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_0_10px_rgba(56,189,248,0.2)]">
-                <Radio className="w-4 h-4 animate-pulse" />
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                <Radio className="w-3.5 h-3.5 animate-pulse" />
               </span>
-              <h2 className="text-xl font-bold text-white tracking-tight font-display">
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight font-display">
                 Live Travel Disruption News Feed
               </h2>
             </div>
-            <p className="text-xs text-slate-400 mt-1 font-sans">
+            <p className="text-xs text-slate-400 mt-0.5 font-sans">
               Real-time Google News RSS intelligence tracking airport delays, airline disruptions, weather advisories &amp; passenger policy updates.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {metadata && (
-              <span className="text-[11px] text-slate-400 bg-[#04060d] px-3 py-1.5 rounded-xl border border-white/[0.08] flex items-center gap-2 font-mono">
-                <span className={`w-2 h-2 rounded-full ${metadata.cached ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
-                {metadata.cached ? `Cached (${metadata.cacheAge || 0}s ago)` : 'Live RSS Connected'}
+              <span className="text-[10px] text-slate-400 bg-[#04060d] px-2.5 py-1 rounded-lg border border-white/[0.08] flex items-center gap-1.5 font-mono">
+                <span className={`w-1.5 h-1.5 rounded-full ${metadata.cached ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
+                {metadata.cached ? `Cached (${metadata.cacheAge || 0}s)` : 'Live RSS'}
               </span>
             )}
             <motion.button
@@ -162,7 +162,7 @@ export function TravelNewsView({
               whileTap={{ scale: 0.98 }}
               onClick={() => fetchNews(true)}
               disabled={refreshing || loading}
-              className="px-3.5 py-2 rounded-xl bg-[#0d1527] hover:bg-[#131f38] border border-white/[0.1] text-xs font-semibold text-slate-200 flex items-center gap-2 transition disabled:opacity-50 cursor-pointer shadow-sm"
+              className="h-8 px-3 rounded-lg bg-[#0d1527] hover:bg-[#131f38] border border-white/[0.1] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer shadow-sm"
               title="Force refresh Google News RSS feed"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-sky-400 ${refreshing ? 'animate-spin' : ''}`} />
@@ -173,16 +173,16 @@ export function TravelNewsView({
 
         {/* Active Journey Personalization Banner */}
         {activeJourneyContext && (
-          <div className="mb-4 p-3.5 rounded-2xl bg-sky-950/30 border border-sky-500/30 flex items-center justify-between gap-3 text-xs text-sky-200">
-            <div className="flex items-center gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-sky-400 shrink-0" />
+          <div className="mb-3 p-2.5 rounded-xl bg-sky-950/30 border border-sky-500/30 flex items-center justify-between gap-2.5 text-xs text-sky-200">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-sky-400 shrink-0" />
               <span className="font-sans">
                 <strong className="font-semibold text-white">Contextual Filter Active:</strong> Showing disruptions relevant to{' '}
                 <span className="text-sky-300 font-bold">{activeJourneyContext.airline || 'Journey Flight'}</span>
                 {activeJourneyContext.airport && <> &middot; <span className="text-sky-300 font-bold">{activeJourneyContext.airport}</span></>}
               </span>
             </div>
-            <span className="text-[10px] font-mono bg-sky-500/20 px-2.5 py-0.5 rounded-full border border-sky-500/40 text-sky-300">
+            <span className="text-[9px] font-mono bg-sky-500/20 px-2 py-0.5 rounded-full border border-sky-500/40 text-sky-300">
               Auto-Matched
             </span>
           </div>
@@ -191,20 +191,20 @@ export function TravelNewsView({
         {/* Search Input */}
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search disruption keywords (e.g. IndiGo delay, fog Delhi airport, baggage policy)..."
-              className="w-full pl-9 pr-4 py-2 bg-[#04060d] border border-white/[0.1] rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition font-sans"
+              className="w-full h-8.5 pl-8.5 pr-3 bg-[#04060d] border border-white/[0.1] rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition font-sans"
             />
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold shadow-[0_0_15px_rgba(56,189,248,0.25)] transition cursor-pointer font-display"
+            className="h-8.5 px-3.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer font-display"
           >
             Search
           </motion.button>
@@ -215,7 +215,7 @@ export function TravelNewsView({
                 setSearchQuery('');
                 setTimeout(() => fetchNews(false), 50);
               }}
-              className="px-3.5 py-2 bg-[#0d1527] hover:bg-[#152038] text-slate-300 rounded-xl text-xs font-medium border border-white/[0.1] transition cursor-pointer font-sans"
+              className="h-8.5 px-3 bg-[#0d1527] hover:bg-[#152038] text-slate-300 rounded-lg text-xs font-medium border border-white/[0.1] transition cursor-pointer font-sans"
             >
               Clear
             </button>
@@ -223,9 +223,9 @@ export function TravelNewsView({
         </form>
 
         {/* Category Filter Chips */}
-        <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-white/[0.08]">
-          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 mr-1 font-mono">
-            <Filter className="w-3.5 h-3.5 text-sky-400" /> Filters:
+        <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-white/[0.08]">
+          <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1 mr-1 font-mono">
+            <Filter className="w-3 h-3 text-sky-400" /> Filters:
           </span>
           {CATEGORY_CHIPS.map((chip) => {
             const Icon = chip.icon;
@@ -235,9 +235,9 @@ export function TravelNewsView({
                 whileTap={{ scale: 0.96 }}
                 key={chip.id}
                 onClick={() => setSelectedCategory(chip.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer font-display ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer font-display ${
                   isSelected
-                    ? 'bg-sky-600 text-white shadow-[0_0_12px_rgba(56,189,248,0.3)] border border-sky-400/40'
+                    ? 'bg-sky-600 text-white shadow-sm border border-sky-400/40'
                     : 'bg-[#04060d] text-slate-400 hover:text-slate-200 border border-white/[0.08] hover:border-white/[0.2]'
                 }`}
               >
@@ -312,25 +312,25 @@ export function TravelNewsView({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: idx * 0.03 }}
-              className="rounded-2xl border border-white/[0.08] bg-[#070b16]/80 hover:bg-[#0c1324] hover:border-white/[0.18] p-5 shadow-glass-card hover:shadow-glow-sm transition flex flex-col justify-between group"
+              className="rounded-xl border border-white/[0.08] bg-[#070b16]/80 hover:bg-[#0c1324] hover:border-white/[0.18] p-3.5 sm:p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group"
             >
               <div>
                 {/* Header: Category Badge + Source + Time Ago */}
-                <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
                     {getCategoryBadge(article.category)}
-                    <span className="text-[11px] font-medium text-slate-400 bg-white/[0.06] px-2.5 py-0.5 rounded-full border border-white/[0.08] truncate max-w-[130px] font-mono">
+                    <span className="text-[10px] font-medium text-slate-400 bg-white/[0.06] px-2 py-0.5 rounded-md border border-white/[0.08] truncate max-w-[130px] font-mono">
                       {article.source}
                     </span>
                   </div>
-                  <span className="text-[11px] text-slate-500 flex items-center gap-1 shrink-0 font-mono">
+                  <span className="text-[10px] text-slate-500 flex items-center gap-1 shrink-0 font-mono">
                     <Clock className="w-3 h-3 text-slate-500" />
                     {formatTimeAgo(article.published_time)}
                   </span>
                 </div>
 
                 {/* Headline */}
-                <h3 className="text-sm font-bold text-white group-hover:text-sky-300 transition line-clamp-2 leading-snug mb-2 font-display">
+                <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-sky-300 transition line-clamp-2 leading-snug mb-1.5 font-display">
                   <a
                     href={article.link}
                     target="_blank"
@@ -342,21 +342,21 @@ export function TravelNewsView({
                 </h3>
 
                 {/* Snippet */}
-                <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-4 font-sans">
+                <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-2.5 font-sans">
                   {article.snippet}
                 </p>
               </div>
 
               {/* Action: Open Link */}
-              <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                <span className="text-[11px] text-slate-500 font-mono">
+              <div className="pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                <span className="text-[10px] text-slate-500 font-mono">
                   Google News RSS Verified
                 </span>
                 <a
                   href={article.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 font-semibold text-sky-400 hover:text-sky-300 text-xs transition font-display"
+                  className="inline-flex items-center gap-1 font-semibold text-sky-400 hover:text-sky-300 text-xs transition font-display"
                 >
                   <span>Read Article</span>
                   <ExternalLink className="w-3 h-3" />

@@ -81,4 +81,8 @@ class EventDrivenDisruptionRequest(BaseModel):
         None,
         description="Optional failure injection: 'recovery_agent_transient' (succeeds on retry 2), 'action_agent_poison_pill' (exhausts retries -> DLQ + action.failed)"
     )
+    auto_execute: bool = Field(
+        default=False,
+        description="Whether to automatically execute the recovery plan after generation. Defaults to False (Disruption -> Generate Recovery Plan -> STOP)."
+    )
     max_retries: int = Field(3, ge=0, le=5)

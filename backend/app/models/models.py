@@ -48,11 +48,14 @@ class DisruptionStatus(str, enum.Enum):
 
 class RecoveryPlanStatus(str, enum.Enum):
     PROPOSED = "PROPOSED"
+    PLAN_GENERATED = "PLAN_GENERATED"
+    HUMAN_REVIEW = "HUMAN_REVIEW"
     APPROVED = "APPROVED"
     EXECUTING = "EXECUTING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     REJECTED = "REJECTED"
+    REVISION_REQUIRED = "REVISION_REQUIRED"
 
 class NotificationChannel(str, enum.Enum):
     EMAIL = "EMAIL"
@@ -223,6 +226,9 @@ class RecoveryPlan(Base):
     refund_opportunities = Column(JSON, nullable=True)
     actions = Column(JSON, nullable=False) # list of planned steps/actions
     alternatives_considered = Column(JSON, nullable=True)
+    rejection_feedback = Column(JSON, nullable=True)
+    active_constraints = Column(JSON, nullable=True)
+    revision_count = Column(Integer, default=0)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

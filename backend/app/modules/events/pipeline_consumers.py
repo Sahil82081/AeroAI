@@ -23,7 +23,7 @@ Notification Agent (`notification-agent-group`)
     Real-Time WebSocket Completion -> "Traveler notified"
 """
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from app.schemas.event_schemas import (
     KafkaTopic,
     KafkaEventEnvelope,
@@ -205,6 +205,7 @@ class EventDrivenRecoveryPipeline:
                 "hotel_latest_checkin": "2026-10-20T22:00:00",
                 "step_delay_ms": step_delay_ms,
                 "inject_consumer_failure": inject_failure,
+                "auto_execute": payload.get("auto_execute", False),
             },
         )
 
@@ -298,23 +299,70 @@ class EventDrivenRecoveryPipeline:
             },
         )
 
-        # 2. Publish `action.requested` -> dispatches to Action Agent
-        kafka_broker.publish_event(
-            topic=KafkaTopic.ACTION_REQUESTED.value,
-            event_type="RECOVERY_ACTIONS_REQUESTED",
-            producer="recovery-agent",
-            correlation_id=envelope.correlation_id,
-            causation_id=planned_env.event_id,
-            ui_message=f"Executing recovery plan {recovery_plan['plan_id']} ({selected_opt.get('transport_id', 'TRN124')})",
-            max_retries=envelope.max_retries,
-            step_delay_ms=step_delay_ms,
-            payload={
-                "journey_id": payload.get("journey_id", 1),
-                "recovery_plan": recovery_plan,
-                "step_delay_ms": step_delay_ms,
-                "inject_consumer_failure": inject_failure,
-            },
-        )
+        # Persist proposed plan to database if available
+        try:
+            from app.db.session import SessionLocal
+            from app.models.models import RecoveryPlan, RecoveryPlanStatus, Disruption, DisruptionStatus
+            with SessionLocal() as db:
+                journey_id = int(payload.get("journey_id", 1))
+                disruption_record = (
+                    db.query(Disruption)
+                    .filter(Disruption.journey_id == journey_id)
+                    .order_by(Disruption.id.desc())
+                    .first()
+                )
+                if disruption_record:
+                    disruption_record.status = DisruptionStatus.PLAN_GENERATED
+                plan_db = RecoveryPlan(
+                    journey_id=journey_id,
+                    disruption_id=disruption_record.id if disruption_record else 1,
+                    status=RecoveryPlanStatus.PROPOSED,
+                    summary=f"Proposed Recovery: Rebook onto {selected_opt.get('name', selected_opt.get('transport_id'))}",
+                    reasoning_explanation=opt_result.explanation or "Optimal CP-SAT solution.",
+                    estimated_additional_cost=max(0.0, float(selected_opt.get("price", 0.0)) - 800.0),
+                    refund_opportunities={"refund_amount_inr": 600.0, "eligible": True},
+                    actions=[
+                        {"step": 1, "action_type": "cancel_booking", "booking_id": payload.get("disrupted_booking_ref", "12015-SHT"), "status": "PROPOSED"},
+                        {"step": 2, "action_type": "rebook_transportation", "booking_id": selected_opt.get("transport_id", "TRN124"), "status": "PROPOSED"},
+                        {"step": 3, "action_type": "request_refund", "booking_id": payload.get("disrupted_booking_ref", "12015-SHT"), "status": "PROPOSED"},
+                        {"step": 4, "action_type": "modify_hotel_checkin", "booking_id": payload.get("hotel_booking_ref", "HTL-JAI-101"), "status": "PROPOSED"},
+                        {"step": 5, "action_type": "notify_traveler", "booking_id": selected_opt.get("transport_id", "TRN124"), "status": "PROPOSED"},
+                        {"step": 6, "action_type": "notify_relevant_contact", "booking_id": payload.get("hotel_booking_ref", "HTL-JAI-101"), "status": "PROPOSED"},
+                    ],
+                    alternatives_considered=[a.model_dump() if hasattr(a, "model_dump") else a for a in opt_result.alternatives],
+                )
+                db.add(plan_db)
+                db.commit()
+                db.refresh(plan_db)
+                recovery_plan["db_plan_id"] = plan_db.id
+        except Exception as db_err:
+            logger.debug(f"Could not persist recovery plan to DB: {db_err}")
+
+        # Check auto_execute flag: default is FALSE (Disruption -> Generate Recovery Plan -> STOP)
+        auto_execute = bool(payload.get("auto_execute", False))
+        if auto_execute:
+            # 2. Publish `action.requested` -> dispatches to Action Agent
+            kafka_broker.publish_event(
+                topic=KafkaTopic.ACTION_REQUESTED.value,
+                event_type="RECOVERY_ACTIONS_REQUESTED",
+                producer="recovery-agent",
+                correlation_id=envelope.correlation_id,
+                causation_id=planned_env.event_id,
+                ui_message=f"Executing recovery plan {recovery_plan['plan_id']} ({selected_opt.get('transport_id', 'TRN124')})",
+                max_retries=envelope.max_retries,
+                step_delay_ms=step_delay_ms,
+                payload={
+                    "journey_id": payload.get("journey_id", 1),
+                    "recovery_plan": recovery_plan,
+                    "step_delay_ms": step_delay_ms,
+                    "inject_consumer_failure": inject_failure,
+                },
+            )
+        else:
+            logger.info(
+                f"[Recovery Agent] Recovery plan {recovery_plan['plan_id']} generated with status=PROPOSED. "
+                f"STOPPING pipeline without action execution (PLAN vs EXECUTE separation)."
+            )
 
     def _handle_action_requested(self, envelope: KafkaEventEnvelope):
         """
@@ -515,6 +563,7 @@ class EventDrivenRecoveryPipeline:
                 "reason": req.reason,
                 "step_delay_ms": req.step_delay_ms,
                 "inject_consumer_failure": req.inject_consumer_failure,
+                "auto_execute": req.auto_execute,
                 "step_tag": "disruption_detected",
             },
         )
@@ -558,6 +607,63 @@ class EventDrivenRecoveryPipeline:
             "idempotent_skips": skips_for_corr,
             "consumer_groups": [g.to_status_dict() for g in kafka_broker.consumer_groups.values()],
         }
+
+    def trigger_plan_execution(
+        self,
+        recovery_plan: Dict[str, Any],
+        correlation_id: Optional[str] = None,
+        causation_id: Optional[str] = None,
+        max_retries: int = 3,
+        step_delay_ms: int = 0,
+        inject_failure: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        [EXECUTION STAGE] Explicitly dispatches an approved recovery plan to the Action Agent.
+        Publishes `action.requested` -> executes supplier actions -> publishes `action.completed`
+        -> notifies traveler & contacts.
+        """
+        self.register_all_consumers()
+
+        # Strict Human Approval Gate: Plan must be APPROVED before execution
+        plan_status = recovery_plan.get("status")
+        if plan_status and str(plan_status).upper() not in ("APPROVED", "EXECUTING", "COMPLETED"):
+            raise ValueError(
+                f"Execution forbidden: Recovery plan has status '{plan_status}'. Plan must be APPROVED before execution."
+            )
+
+        corr_id = correlation_id or recovery_plan.get("correlation_id") or f"corr-exec-{datetime.now(timezone.utc).strftime('%H%M%S')}"
+        selected_opt = recovery_plan.get("selected_option", {})
+        plan_id = recovery_plan.get("plan_id", f"PLAN-{corr_id[-6:].upper()}")
+
+        action_env = kafka_broker.publish_event(
+            topic=KafkaTopic.ACTION_REQUESTED.value,
+            event_type="RECOVERY_ACTIONS_REQUESTED",
+            producer="execution-trigger",
+            correlation_id=corr_id,
+            causation_id=causation_id,
+            ui_message=f"Executing recovery plan {plan_id} ({selected_opt.get('transport_id', 'TRN124')})",
+            max_retries=max_retries,
+            step_delay_ms=step_delay_ms,
+            payload={
+                "journey_id": recovery_plan.get("journey_id", 1),
+                "recovery_plan": recovery_plan,
+                "step_delay_ms": step_delay_ms,
+                "inject_consumer_failure": inject_failure,
+            },
+        )
+        cascade_events = [
+            e for e in kafka_broker.all_events_chronological
+            if e.get("correlation_id") == corr_id
+        ]
+        return {
+            "correlation_id": corr_id,
+            "root_event_id": action_env.event_id,
+            "status": "EXECUTION_DISPATCHED",
+            "total_events_emitted": len(cascade_events),
+            "topics_traversed": list(dict.fromkeys(e["topic"] for e in cascade_events)),
+            "events": cascade_events,
+        }
+
 
 
 event_pipeline = EventDrivenRecoveryPipeline()

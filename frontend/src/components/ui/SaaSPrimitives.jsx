@@ -13,43 +13,43 @@ import {
 } from 'lucide-react';
 
 /**
- * Standardized Journey & Segment Status Indicators required in Stage 11:
- * - ✓ Safe
- * - ⚠ At Risk
- * - ❌ Disrupted
- * - 🔄 Recovery in Progress
- * - ✓ Recovered
+ * Standardized Journey & Segment Status Indicators matching Stitch Reference Design:
+ * - Safe
+ * - At Risk
+ * - Disrupted
+ * - Recovery in Progress
+ * - Recovered
  */
 export const JOURNEY_STATUS_CONFIG = {
   SAFE: {
     key: 'SAFE',
-    badgeText: '✓ Safe',
-    classes: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]',
-    dotClass: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+    badgeText: 'Safe',
+    classes: 'bg-surface-container-high border-primary/20 text-primary-fixed-dim shadow-sm',
+    dotClass: 'bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.8)] animate-pulse',
   },
   AT_RISK: {
     key: 'AT_RISK',
-    badgeText: '⚠ At Risk',
-    classes: 'bg-amber-500/15 text-amber-300 border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.2)]',
+    badgeText: 'At Risk',
+    classes: 'bg-surface-container-high border-amber-500/30 text-amber-300 shadow-sm',
     dotClass: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]',
   },
   DISRUPTED: {
     key: 'DISRUPTED',
-    badgeText: '❌ Disrupted',
-    classes: 'bg-rose-500/15 text-rose-300 border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.2)]',
-    dotClass: 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]',
+    badgeText: 'Disrupted',
+    classes: 'bg-surface-container-high border-error/30 text-error shadow-sm',
+    dotClass: 'bg-error shadow-[0_0_8px_rgba(255,180,171,0.8)]',
   },
   RECOVERY_IN_PROGRESS: {
     key: 'RECOVERY_IN_PROGRESS',
-    badgeText: '🔄 Recovery in Progress',
-    classes: 'bg-sky-500/15 text-sky-300 border-sky-500/30 shadow-[0_0_12px_rgba(14,165,233,0.25)]',
-    dotClass: 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-spin',
+    badgeText: 'Recovery in Progress',
+    classes: 'bg-surface-container-high border-primary-container/30 text-primary-container shadow-sm',
+    dotClass: 'bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.8)] animate-spin',
   },
   RECOVERED: {
     key: 'RECOVERED',
-    badgeText: '✓ Recovered',
-    classes: 'bg-teal-500/20 text-teal-200 border-teal-400/40 shadow-[0_0_12px_rgba(20,184,166,0.25)]',
-    dotClass: 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]',
+    badgeText: 'Recovered',
+    classes: 'bg-surface-container-high border-primary/30 text-primary shadow-sm',
+    dotClass: 'bg-primary shadow-[0_0_8px_rgba(195,245,255,0.8)]',
   },
 };
 
@@ -58,14 +58,14 @@ export function JourneyStatusBadge({ status = 'SAFE', size = 'md' }) {
   const cfg = JOURNEY_STATUS_CONFIG[normalized] || JOURNEY_STATUS_CONFIG.SAFE;
   const sizeClasses =
     size === 'sm'
-      ? 'px-2 py-0.5 text-[10px] tracking-wide'
+      ? 'px-2 py-0.5 text-[10px] tracking-wider'
       : size === 'lg'
-      ? 'px-3.5 py-1.5 text-xs tracking-wide'
-      : 'px-2.5 py-1 text-xs tracking-wide';
+      ? 'px-3 py-1 text-xs tracking-wider'
+      : 'px-2.5 py-0.5 text-[11px] tracking-wider';
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium font-mono border backdrop-blur-md transition-all ${cfg.classes} ${sizeClasses}`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-label-caps font-bold uppercase border backdrop-blur-md transition-all ${cfg.classes} ${sizeClasses}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
       <span>{cfg.badgeText}</span>
@@ -75,26 +75,26 @@ export function JourneyStatusBadge({ status = 'SAFE', size = 'md' }) {
 
 export function PulseBadge({ label = 'Live', color = 'sky', pulse = true }) {
   const colorMap = {
-    sky: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-    indigo: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
-    violet: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
-    emerald: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-    amber: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-    rose: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+    sky: 'bg-surface-container-high text-primary-fixed-dim border-primary/20',
+    indigo: 'bg-surface-container-high text-secondary border-secondary/30',
+    violet: 'bg-surface-container-high text-secondary-fixed-dim border-secondary/30',
+    emerald: 'bg-surface-container-high text-primary-container border-primary-container/30',
+    amber: 'bg-surface-container-high text-amber-300 border-amber-500/30',
+    rose: 'bg-surface-container-high text-error border-error/30',
   };
 
   const dotMap = {
-    sky: 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]',
-    indigo: 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]',
-    violet: 'bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.8)]',
-    emerald: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+    sky: 'bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.8)]',
+    indigo: 'bg-secondary shadow-[0_0_8px_rgba(182,196,255,0.8)]',
+    violet: 'bg-secondary-fixed shadow-[0_0_8px_rgba(220,225,255,0.8)]',
+    emerald: 'bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.8)]',
     amber: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]',
-    rose: 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]',
+    rose: 'bg-error shadow-[0_0_8px_rgba(255,180,171,0.8)]',
   };
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold tracking-wider uppercase border backdrop-blur-md ${colorMap[color] || colorMap.sky}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-label-caps font-bold tracking-wider uppercase border backdrop-blur-md ${colorMap[color] || colorMap.sky}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${dotMap[color] || dotMap.sky} ${pulse ? 'animate-pulse' : ''}`} />
       <span>{label}</span>
@@ -140,24 +140,17 @@ export function GlassCard({
   children,
   className = '',
   hoverEffect = true,
-  glowColor = 'sky',
+  glowColor = 'cyan',
   onClick,
 }) {
-  const glowBorder = {
-    sky: 'hover:border-sky-500/40 hover:shadow-[0_16px_36px_-4px_rgba(0,0,0,0.6),0_0_24px_-4px_rgba(14,165,233,0.25)]',
-    violet: 'hover:border-violet-500/40 hover:shadow-[0_16px_36px_-4px_rgba(0,0,0,0.6),0_0_24px_-4px_rgba(139,92,246,0.25)]',
-    emerald: 'hover:border-emerald-500/40 hover:shadow-[0_16px_36px_-4px_rgba(0,0,0,0.6),0_0_24px_-4px_rgba(16,185,129,0.25)]',
-    rose: 'hover:border-rose-500/40 hover:shadow-[0_16px_36px_-4px_rgba(0,0,0,0.6),0_0_24px_-4px_rgba(244,63,94,0.25)]',
-  };
-
   return (
     <div
       onClick={onClick}
-      className={`rounded-2xl border border-white/[0.08] bg-[#070b16]/75 backdrop-blur-xl shadow-glass-card transition-all duration-300 relative overflow-hidden ${
-        hoverEffect ? `hover:-translate-y-1 ${glowBorder[glowColor] || glowBorder.sky} cursor-pointer` : ''
+      className={`rounded-xl border border-surface-container-high bg-surface-container-low/90 backdrop-blur-md shadow-sm transition-all duration-200 relative overflow-hidden group ${
+        hoverEffect ? 'hover:border-primary-container/40 hover:-translate-y-0.5 cursor-pointer' : ''
       } ${className}`}
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+      <div className="absolute -right-6 -top-6 w-28 h-28 bg-primary-container/5 rounded-full blur-xl group-hover:bg-primary-container/10 transition-all pointer-events-none" />
       {children}
     </div>
   );
@@ -169,76 +162,46 @@ export function StatCard({
   subtext,
   icon: Icon,
   trend,
-  color = 'sky',
+  color = 'cyan',
   delay = 0,
 }) {
-  const colorMap = {
-    sky: {
-      iconBg: 'bg-sky-500/15 border-sky-500/30 text-sky-400',
-      valueColor: 'text-white',
-      accentGlow: 'from-sky-500/10 via-transparent to-transparent',
-    },
-    violet: {
-      iconBg: 'bg-violet-500/15 border-violet-500/30 text-violet-400',
-      valueColor: 'text-white',
-      accentGlow: 'from-violet-500/10 via-transparent to-transparent',
-    },
-    emerald: {
-      iconBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
-      valueColor: 'text-emerald-400',
-      accentGlow: 'from-emerald-500/10 via-transparent to-transparent',
-    },
-    amber: {
-      iconBg: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
-      valueColor: 'text-amber-300',
-      accentGlow: 'from-amber-500/10 via-transparent to-transparent',
-    },
-    rose: {
-      iconBg: 'bg-rose-500/15 border-rose-500/30 text-rose-400',
-      valueColor: 'text-rose-400',
-      accentGlow: 'from-rose-500/10 via-transparent to-transparent',
-    },
-  };
-
-  const scheme = colorMap[color] || colorMap.sky;
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="p-5 rounded-2xl border border-white/[0.08] bg-[#070b16]/75 backdrop-blur-xl shadow-glass-card hover:border-white/20 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden"
+      transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="p-4 sm:p-4.5 rounded-xl border border-surface-container-high bg-surface-container-low/90 backdrop-blur-md shadow-sm hover:border-primary-container/40 hover:-translate-y-0.5 transition-all duration-200 relative group overflow-hidden"
     >
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${scheme.accentGlow} rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500`} />
+      <div className="absolute -right-6 -top-6 w-28 h-28 bg-primary-container/5 rounded-full blur-xl group-hover:bg-primary-container/10 transition-all pointer-events-none" />
       
       <div className="flex items-start justify-between gap-3 relative z-10">
-        <div className="space-y-1">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+        <div className="space-y-0.5">
+          <div className="text-[11px] font-label-caps uppercase tracking-wider text-outline font-semibold">
             {title}
           </div>
-          <div className={`text-2xl font-bold tracking-tight font-display mt-0.5 ${scheme.valueColor}`}>
+          <div className="text-2xl sm:text-3xl font-black tracking-tight font-headline-md mt-0.5 text-on-surface">
             {typeof value === 'number' ? <CountUpNumber value={value} /> : value}
           </div>
           {subtext && (
-            <div className="text-[11px] text-slate-400 mt-1 leading-snug">
+            <div className="text-xs text-on-surface-variant mt-0.5 leading-normal">
               {subtext}
             </div>
           )}
         </div>
 
         {Icon && (
-          <div className={`p-3 rounded-xl border ${scheme.iconBg} shadow-inner shrink-0 group-hover:rotate-6 transition-transform duration-300`}>
-            <Icon className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-surface-container-high border border-primary/20 flex items-center justify-center text-primary-container shadow-sm shrink-0 group-hover:scale-105 transition-transform duration-200">
+            <Icon className="w-4 h-4" />
           </div>
         )}
       </div>
 
       {trend && (
-        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-1.5 text-[11px] text-slate-400">
-          <span className="text-emerald-400 font-semibold font-mono flex items-center">
+        <div className="mt-2.5 pt-2 border-t border-surface-container-high/60 flex items-center gap-1.5 text-xs text-outline font-mono">
+          <span className="text-primary-container font-bold flex items-center">
             {trend} <ArrowUpRight className="w-3 h-3 ml-0.5" />
           </span>
-          <span className="text-slate-500">&bull;</span>
+          <span className="text-outline/40">&bull;</span>
           <span>vs nominal schedule</span>
         </div>
       )}
@@ -250,17 +213,17 @@ export function ToastViewport({ toasts = [], onDismiss }) {
   if (!toasts || toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
       <AnimatePresence>
         {toasts.map((t) => {
           const toneStyles =
             t.type === 'error'
-              ? 'border-rose-500/40 bg-[#0b0c16]/95 text-rose-200 shadow-[0_8px_32px_rgba(244,63,94,0.25)]'
+              ? 'border-error/40 bg-surface-container-low/95 text-error shadow-2xl'
               : t.type === 'warning'
-              ? 'border-amber-500/40 bg-[#0f1118]/95 text-amber-200 shadow-[0_8px_32px_rgba(245,158,11,0.25)]'
+              ? 'border-amber-500/40 bg-surface-container-low/95 text-amber-300 shadow-2xl'
               : t.type === 'websocket'
-              ? 'border-indigo-500/50 bg-[#0a0d24]/95 text-indigo-100 shadow-[0_8px_32px_rgba(99,102,241,0.25)]'
-              : 'border-emerald-500/40 bg-[#071318]/95 text-emerald-200 shadow-[0_8px_32px_rgba(16,185,129,0.25)]';
+              ? 'border-primary-container/50 bg-surface-container-low/95 text-primary-container shadow-2xl'
+              : 'border-primary/40 bg-surface-container-low/95 text-on-surface shadow-2xl';
 
           return (
             <motion.div
@@ -269,34 +232,34 @@ export function ToastViewport({ toasts = [], onDismiss }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: 50, scale: 0.9 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className={`pointer-events-auto rounded-2xl border p-4 shadow-2xl backdrop-blur-xl flex items-start justify-between gap-3 ${toneStyles}`}
+              className={`pointer-events-auto rounded-2xl border p-4 shadow-2xl backdrop-blur-2xl flex items-start justify-between gap-3 ${toneStyles}`}
             >
               <div className="flex items-start gap-3">
                 {t.type === 'error' ? (
-                  <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 shrink-0 mt-0.5">
+                  <div className="p-1.5 rounded-lg bg-surface-container-high text-error shrink-0 mt-0.5 border border-error/30">
                     <XCircle className="w-4 h-4" />
                   </div>
                 ) : t.type === 'warning' ? (
-                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                  <div className="p-1.5 rounded-lg bg-surface-container-high text-amber-300 shrink-0 mt-0.5 border border-amber-500/30">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                 ) : t.type === 'websocket' ? (
-                  <div className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 shrink-0 mt-0.5 animate-spin">
+                  <div className="p-1.5 rounded-lg bg-surface-container-high text-primary-container shrink-0 mt-0.5 border border-primary-container/30 animate-spin">
                     <RefreshCw className="w-4 h-4" />
                   </div>
                 ) : (
-                  <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
+                  <div className="p-1.5 rounded-lg bg-surface-container-high text-primary-container shrink-0 mt-0.5 border border-primary/20">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                 )}
                 <div className="text-xs space-y-0.5">
-                  <div className="font-bold text-white font-display tracking-tight">{t.title}</div>
-                  {t.message && <div className="text-slate-300 leading-relaxed font-sans">{t.message}</div>}
+                  <div className="font-bold text-on-surface font-title-sm tracking-tight">{t.title}</div>
+                  {t.message && <div className="text-on-surface-variant leading-relaxed font-body-sm">{t.message}</div>}
                 </div>
               </div>
               <button
                 onClick={() => onDismiss(t.id)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+                className="text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface-container-high transition cursor-pointer"
                 aria-label="Dismiss toast"
               >
                 <X className="w-3.5 h-3.5" />
@@ -322,52 +285,52 @@ export function ConfirmDialog({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030712]/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-md w-full rounded-2xl border border-white/[0.12] bg-[#070b16] p-6 shadow-2xl space-y-4 relative overflow-hidden"
+            className="max-w-md w-full rounded-xl border border-surface-container-high bg-surface-container-low p-4 sm:p-5 shadow-xl space-y-3 relative overflow-hidden"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/30 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-container/40 to-transparent" />
             
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className={`p-2.5 rounded-xl border ${
+                  className={`p-2 rounded-lg border ${
                     variant === 'danger'
-                      ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
-                      : 'bg-sky-500/15 border-sky-500/30 text-sky-400'
+                      ? 'bg-surface-container-high border-error/30 text-error'
+                      : 'bg-surface-container-high border-primary/30 text-primary-container'
                   }`}
                 >
-                  <ShieldCheck className="w-5 h-5" />
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-bold text-white font-display">{title}</h3>
+                <h3 className="text-sm sm:text-base font-bold text-on-surface font-headline-md">{title}</h3>
               </div>
               <button
                 onClick={onCancel}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+                className="text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface-container-high transition cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed font-sans">{description}</p>
+            <p className="text-xs text-on-surface-variant leading-relaxed">{description}</p>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/[0.08]">
+            <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-surface-container-high">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-white/[0.08] transition cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-surface-container-high transition cursor-pointer h-8"
               >
                 {cancelLabel}
               </button>
               <button
                 onClick={onConfirm}
-                className={`px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition cursor-pointer ${
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer h-8 ${
                   variant === 'danger'
-                    ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
-                    : 'bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-sky-600/30'
+                    ? 'bg-error-container text-on-error-container hover:brightness-110 shadow-sm'
+                    : 'bg-gradient-to-r from-primary-container to-primary-fixed-dim text-on-primary shadow-sm hover:brightness-110'
                 }`}
               >
                 {confirmLabel}
@@ -382,17 +345,17 @@ export function ConfirmDialog({
 
 export function SkeletonLoader({ rows = 3 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {Array.from({ length: rows }).map((_, i) => (
         <div
           key={i}
-          className="h-24 rounded-2xl bg-[#070b16]/70 border border-white/[0.06] p-4 flex flex-col justify-between relative overflow-hidden"
+          className="h-20 rounded-xl bg-surface-container-low/70 border border-surface-container-high/60 p-3 flex flex-col justify-between relative overflow-hidden"
         >
           <div className="absolute inset-0 shimmer-wave" />
-          <div className="h-4 w-1/3 bg-slate-800/80 rounded-md" />
-          <div className="space-y-1.5">
-            <div className="h-3 w-3/4 bg-slate-800/50 rounded-md" />
-            <div className="h-2.5 w-1/2 bg-slate-800/40 rounded-md" />
+          <div className="h-3.5 w-1/3 bg-surface-container-high rounded-md" />
+          <div className="space-y-1">
+            <div className="h-2.5 w-3/4 bg-surface-container-high/70 rounded-md" />
+            <div className="h-2 w-1/2 bg-surface-container-high/50 rounded-md" />
           </div>
         </div>
       ))}
@@ -402,18 +365,18 @@ export function SkeletonLoader({ rows = 3 }) {
 
 export function EmptyStateBox({ title, description, actionLabel, onAction }) {
   return (
-    <div className="rounded-2xl border border-dashed border-white/[0.12] bg-[#070b16]/40 p-10 text-center space-y-4 backdrop-blur-md relative overflow-hidden">
-      <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center mx-auto shadow-inner">
-        <Inbox className="w-6 h-6" />
+    <div className="rounded-xl border border-dashed border-surface-container-high bg-surface-container-low/40 p-6 text-center space-y-3 backdrop-blur-md relative overflow-hidden">
+      <div className="w-10 h-10 rounded-xl bg-surface-container-high border border-primary/20 text-primary-container flex items-center justify-center mx-auto shadow-sm">
+        <Inbox className="w-5 h-5" />
       </div>
-      <div className="space-y-1.5 max-w-md mx-auto">
-        <h4 className="text-sm font-bold text-white font-display">{title}</h4>
-        <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
+      <div className="space-y-1 max-w-md mx-auto">
+        <h4 className="text-xs sm:text-sm font-bold text-on-surface font-headline-md">{title}</h4>
+        <p className="text-xs text-on-surface-variant leading-relaxed">{description}</p>
       </div>
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-sky-600/25 transition cursor-pointer"
+          className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-container to-primary-fixed-dim text-on-primary text-xs font-bold shadow-sm transition cursor-pointer hover:brightness-110 h-8"
         >
           {actionLabel}
         </button>
@@ -428,21 +391,21 @@ export function ErrorAlertBanner({ error, onRetry }) {
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-rose-500/40 bg-rose-950/25 p-4 flex items-center justify-between gap-4 text-xs backdrop-blur-xl shadow-lg shadow-rose-950/50"
+      className="rounded-xl border border-error/40 bg-surface-container-low p-4 sm:p-4.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm backdrop-blur-md shadow-sm"
     >
-      <div className="flex items-center gap-2.5 text-rose-200">
-        <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-        <span className="font-medium">{error}</span>
+      <div className="flex items-center gap-3 text-error">
+        <XCircle className="w-5 h-5 text-error shrink-0" />
+        <span className="font-medium leading-relaxed">{error}</span>
       </div>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold shrink-0 cursor-pointer transition shadow"
+          className="px-4 py-2 rounded-lg bg-error-container text-on-error-container font-bold shrink-0 cursor-pointer transition shadow hover:brightness-110 text-xs h-9 flex items-center justify-center gap-2"
         >
-          Retry Sync
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Retry Sync</span>
         </button>
       )}
     </motion.div>
   );
 }
-

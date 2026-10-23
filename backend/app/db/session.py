@@ -22,6 +22,24 @@ except Exception as e:
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+def _ensure_schema_columns():
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            cols = [c[1] for c in conn.execute(text("PRAGMA table_info(recovery_plans)")).fetchall()]
+            if cols:
+                if "rejection_feedback" not in cols:
+                    conn.execute(text("ALTER TABLE recovery_plans ADD COLUMN rejection_feedback JSON"))
+                if "active_constraints" not in cols:
+                    conn.execute(text("ALTER TABLE recovery_plans ADD COLUMN active_constraints JSON"))
+                if "revision_count" not in cols:
+                    conn.execute(text("ALTER TABLE recovery_plans ADD COLUMN revision_count INTEGER DEFAULT 0"))
+                conn.commit()
+    except Exception as err:
+        logger.warning(f"Schema check error (safe to ignore if table does not exist yet): {err}")
+
+_ensure_schema_columns()
+
 def get_db():
     db = SessionLocal()
     try:

@@ -59,6 +59,7 @@ def test_kafka_topics_and_full_event_driven_disruption_pipeline():
             "disruption_type": "flight_delay",
             "delay_minutes": 240,
             "correlation_id": "corr-stage9-e2e",
+            "auto_execute": True,
         },
     )
     assert res.status_code == 200
@@ -167,6 +168,7 @@ def test_consumer_retry_handling_on_transient_error():
             "delay_minutes": 240,
             "correlation_id": "corr-retry-transient",
             "inject_consumer_failure": "recovery_agent_transient",
+            "auto_execute": True,
             "max_retries": 3,
         },
     )
@@ -200,6 +202,7 @@ def test_dead_letter_topic_and_dlq_replay():
             "delay_minutes": 240,
             "correlation_id": "corr-dlq-test",
             "inject_consumer_failure": "action_agent_poison_pill",
+            "auto_execute": True,
             "max_retries": 2,
         },
     )

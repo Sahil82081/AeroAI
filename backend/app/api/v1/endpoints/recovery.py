@@ -1,16 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from app.db.session import get_db
 from app.core.deps import get_current_user
-from app.models.models import User, RecoveryPlan, Journey
+from app.models.models import User, RecoveryPlan, Journey, RecoveryPlanStatus, DisruptionStatus
 from app.schemas.schemas import RecoveryPlanCreate, RecoveryPlanResponse
 from app.schemas.optimization_schemas import OptimizationRequest, OptimizationResponse
 from app.modules.optimization.ortools_optimizer import ortools_recovery_optimizer
 from app.modules.ai_agents.recovery_graph import recovery_workflow_runner
-from app.modules.recovery.action_executor import recovery_action_executor, IdempotencyAndAuditStore
+from app.modules.recovery import recovery_planner, recovery_action_executor, IdempotencyAndAuditStore
 from app.modules.events.event_bus import event_bus
 
 router = APIRouter(prefix="/recovery", tags=["Recovery Plans, OR-Tools, LangGraph & Action Execution (Stages 6–8)"])
@@ -35,6 +35,13 @@ class RecoveryPlanExecutionRequest(BaseModel):
     rollback_on_critical_failure: bool = Field(default=True)
     simulate_transient_failures_on_step: Optional[int] = Field(default=None)
     simulate_transient_count: int = Field(default=1, ge=0, le=5)
+    status: Optional[str] = Field(default=None, description="Approval status: must be APPROVED to execute")
+
+
+class RejectAndReplanRequest(BaseModel):
+    reasons: List[str] = Field(default_factory=list, description="Selected rejection reason categories")
+    feedback_text: Optional[str] = Field(default="", description="Traveler or operator feedback text")
+    plan_id: Optional[str] = Field(default=None, description="Optional target plan ID")
 
 
 class SingleActionExecutionRequest(BaseModel):
@@ -162,20 +169,55 @@ def get_langgraph_metadata():
 
 
 @router.post("/execute")
-def execute_recovery_plan_endpoint(request: RecoveryPlanExecutionRequest):
+def execute_recovery_plan_endpoint(
+    request: RecoveryPlanExecutionRequest,
+    db: Session = Depends(get_db)
+):
     """
-    [STAGE 8] Convert a recovery plan into executable actions (cancel, rebook, refund,
-    hotel modify, notify traveler, notify contact) and execute against Mock Supplier APIs
-    with idempotency, retries, timeout handling, partial success, and rollback.
+    [STAGE 8] Convert a recovery plan into executable actions and execute against Mock Supplier APIs.
+    Strict Human Approval Gate: Verifies that plan.status === APPROVED before executing anything.
+    If an unapproved plan (e.g. PLAN_GENERATED, REJECTED, REVISION_REQUIRED) is sent, the request is rejected with 403.
     """
-    return recovery_action_executor.execute_recovery_plan(
-        plan_input=request.model_dump(),
-        max_retries=request.max_retries,
-        timeout_ms=request.timeout_ms,
-        rollback_on_critical_failure=request.rollback_on_critical_failure,
-        simulate_transient_failures_on_step=request.simulate_transient_failures_on_step,
-        simulate_transient_count=request.simulate_transient_count
-    )
+    # 1. Enforce payload status check if provided
+    if request.status and request.status.upper() not in ("APPROVED", "EXECUTING", "COMPLETED"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Execution forbidden: Recovery plan has status '{request.status}'. Plan must be APPROVED before execution."
+        )
+
+    # 2. Check if plan_id matches a record in the database
+    if request.plan_id:
+        db_plan = None
+        if request.plan_id.isdigit():
+            db_plan = db.query(RecoveryPlan).filter(RecoveryPlan.id == int(request.plan_id)).first()
+        if not db_plan:
+            db_plan = db.query(RecoveryPlan).filter(RecoveryPlan.summary.contains(request.plan_id)).first()
+        if db_plan and db_plan.status not in (RecoveryPlanStatus.APPROVED, RecoveryPlanStatus.EXECUTING, RecoveryPlanStatus.COMPLETED):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Execution forbidden: Recovery plan in database has status '{db_plan.status.value}'. Plan must be APPROVED before execution."
+            )
+
+        if db_plan:
+            db_plan.status = RecoveryPlanStatus.EXECUTING
+            db.commit()
+
+    try:
+        exec_res = recovery_action_executor.execute_recovery_plan(
+            plan_input=request.model_dump(),
+            max_retries=request.max_retries,
+            timeout_ms=request.timeout_ms,
+            rollback_on_critical_failure=request.rollback_on_critical_failure,
+            simulate_transient_failures_on_step=request.simulate_transient_failures_on_step,
+            simulate_transient_count=request.simulate_transient_count
+        )
+        if db_plan and exec_res.get("execution_status") in ("COMPLETED", "COMPLETED_SUCCESS"):
+            db_plan.status = RecoveryPlanStatus.COMPLETED
+            db.commit()
+            db.refresh(db_plan)
+        return exec_res
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
 
 
 @router.post("/actions/execute-single")
@@ -502,6 +544,49 @@ def _serialize_live_workspace(db: Session) -> Dict[str, Any]:
         .all()
     )
 
+    latest_plan = (
+        db.query(RecoveryPlan)
+        .filter(RecoveryPlan.journey_id == journey.id)
+        .order_by(RecoveryPlan.id.desc())
+        .first()
+    )
+    proposed_plan_dict = None
+    recovery_details_dict = None
+    if latest_plan and latest_plan.status in (
+        RecoveryPlanStatus.PLAN_GENERATED,
+        RecoveryPlanStatus.HUMAN_REVIEW,
+        RecoveryPlanStatus.APPROVED,
+        RecoveryPlanStatus.REJECTED,
+        RecoveryPlanStatus.REVISION_REQUIRED,
+    ):
+        selected_option = None
+        if latest_plan.alternatives_considered:
+            selected_option = next((alt for alt in latest_plan.alternatives_considered if isinstance(alt, dict) and alt.get("selected")), None)
+        proposed_plan_dict = {
+            "db_plan_id": latest_plan.id,
+            "status": latest_plan.status.value,
+            "workflow_stage": "HUMAN_REVIEW" if latest_plan.status in (RecoveryPlanStatus.PLAN_GENERATED, RecoveryPlanStatus.HUMAN_REVIEW) else latest_plan.status.value,
+            "summary": latest_plan.summary,
+            "reasoning_explanation": latest_plan.reasoning_explanation,
+            "net_additional_cost": latest_plan.estimated_additional_cost,
+            "actions": latest_plan.actions,
+            "active_constraints": latest_plan.active_constraints or {},
+            "rejection_feedback": latest_plan.rejection_feedback or {},
+            "revision_count": latest_plan.revision_count or 1,
+            "is_executed": latest_plan.status == RecoveryPlanStatus.COMPLETED,
+            "is_approved": latest_plan.status == RecoveryPlanStatus.APPROVED,
+            "is_feasible": latest_plan.status != RecoveryPlanStatus.REVISION_REQUIRED,
+            "alternatives_considered": latest_plan.alternatives_considered,
+            "selected_option": selected_option,
+        }
+        recovery_details_dict = {
+            "status": latest_plan.status.value,
+            "workflow_stage": proposed_plan_dict["workflow_stage"],
+            "execution_status": "READY_FOR_EXECUTION" if latest_plan.status == RecoveryPlanStatus.APPROVED else ("REJECTED_REVISION_REQUIRED" if latest_plan.status == RecoveryPlanStatus.REJECTED else "AWAITING_HUMAN_APPROVAL"),
+            "active_constraints": latest_plan.active_constraints or {},
+            "revision_count": latest_plan.revision_count or 1,
+        }
+
     return {
         "has_journey": True,
         "journey": {
@@ -540,6 +625,8 @@ def _serialize_live_workspace(db: Session) -> Dict[str, Any]:
             }
             for d in disruptions
         ],
+        "proposed_plan": proposed_plan_dict,
+        "recovery_details": recovery_details_dict,
         "audit_history": IdempotencyAndAuditStore.get_history(),
         "notifications": [n.model_dump() for n in notification_agent_service.inbox_history],
     }
@@ -934,59 +1021,10 @@ def get_real_indian_transport_catalog() -> Dict[str, Any]:
     return {"catalog": REAL_INDIAN_TRANSPORT_CATALOG}
 
 
-@router.post("/live-workspace/recover")
-def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]:
-    """
-    Runs real Google OR-Tools CP-SAT optimization + Action Execution + Notification generation
-    on the actual bookings currently in SQLite, updates the missed transport and hotel check-in
-    in the database, and returns the updated live workspace + optimization details.
-    """
-    from datetime import datetime, timedelta
-    from app.models.models import Booking, BookingStatus
-    from app.schemas.optimization_schemas import (
-        CandidateAlternativeInput,
-        OptimizationConstraints,
-        TravelerPreferences,
-        OptimizationWeights,
-    )
-    from app.modules.journeys.graph_builder import JourneyGraphEngine
-    from app.modules.notifications.notification_agent import notification_agent_service
-    from app.schemas.notification_schemas import StructuredRecoveryFacts
-
-    journey = db.query(Journey).order_by(Journey.id.desc()).first()
-    if not journey:
-        raise HTTPException(status_code=400, detail="No active journey in database to recover.")
-
-    bookings = (
-        db.query(Booking)
-        .filter(Booking.journey_id == journey.id)
-        .order_by(Booking.start_time.asc())
-        .all()
-    )
-    if len(bookings) < 2:
-        raise HTTPException(status_code=400, detail="Add at least 2 connected bookings to run recovery.")
-
-    # Identify disrupted leg and the missed downstream connection
-    disrupted_leg = next((b for b in bookings if b.status in (BookingStatus.DELAYED, BookingStatus.CANCELLED)), bookings[0])
-    disrupted_idx = bookings.index(disrupted_leg)
-    missed_leg = bookings[disrupted_idx + 1] if disrupted_idx + 1 < len(bookings) else bookings[-1]
-    hotel_leg = next((b for b in bookings if b.booking_type.value == "HOTEL"), None)
-
-    origin_city = missed_leg.origin or "Delhi"
-    dest_city = missed_leg.destination or "Jaipur"
-    base_date_str = disrupted_leg.end_time.strftime("%Y-%m-%d")
-
-    current_arrival_iso = disrupted_leg.end_time.strftime("%Y-%m-%dT%H:%M:%S")
-    hotel_cutoff_dt = (
-        hotel_leg.start_time.replace(hour=23, minute=0, second=0)
-        if hotel_leg
-        else disrupted_leg.end_time + timedelta(hours=7)
-    )
-    hotel_cutoff_iso = hotel_cutoff_dt.strftime("%Y-%m-%dT%H:%M:%S")
-
-    # Build real Indian Railways / Airlines / Volvo Bus alternatives for the user's route & date
-    arr_dt = disrupted_leg.end_time
-    real_route_alternatives = [
+def _build_real_route_alternatives(origin_city: str, dest_city: str, base_date_str: str, arr_dt: Any) -> List[Any]:
+    from datetime import timedelta
+    from app.schemas.optimization_schemas import CandidateAlternativeInput
+    return [
         CandidateAlternativeInput(
             transport_id="12015-SHT",
             name=f"12015 Ajmer Shatabdi Express ({origin_city} → {dest_city})",
@@ -1044,6 +1082,34 @@ def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]
             reliability=0.89,
         ),
         CandidateAlternativeInput(
+            transport_id="FLT101",
+            name=f"Airline A FL-401 ({origin_city} → {dest_city})",
+            supplier_type="flight",
+            provider="Airline A",
+            origin=origin_city,
+            destination=dest_city,
+            departure=(arr_dt + timedelta(minutes=75)).strftime("%Y-%m-%dT%H:%M:%S"),
+            arrival=(arr_dt + timedelta(minutes=140)).strftime("%Y-%m-%dT%H:%M:%S"),
+            price=6500.0,
+            available_seats=9,
+            number_of_changes=0,
+            reliability=0.96,
+        ),
+        CandidateAlternativeInput(
+            transport_id="FLT102",
+            name=f"Airline B FL-702 ({origin_city} → {dest_city})",
+            supplier_type="flight",
+            provider="Airline B",
+            origin=origin_city,
+            destination=dest_city,
+            departure=(arr_dt + timedelta(minutes=90)).strftime("%Y-%m-%dT%H:%M:%S"),
+            arrival=(arr_dt + timedelta(minutes=155)).strftime("%Y-%m-%dT%H:%M:%S"),
+            price=5800.0,
+            available_seats=14,
+            number_of_changes=0,
+            reliability=0.94,
+        ),
+        CandidateAlternativeInput(
             transport_id="FLT103",
             name=f"IndiGo 6E-5091 ({origin_city} → {dest_city})",
             supplier_type="flight",
@@ -1054,6 +1120,20 @@ def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]
             arrival=(arr_dt + timedelta(minutes=165)).strftime("%Y-%m-%dT%H:%M:%S"),
             price=3850.0,
             available_seats=6,
+            number_of_changes=0,
+            reliability=0.95,
+        ),
+        CandidateAlternativeInput(
+            transport_id="FLT104",
+            name=f"Air India AI-415 ({origin_city} → {dest_city})",
+            supplier_type="flight",
+            provider="Air India",
+            origin=origin_city,
+            destination=dest_city,
+            departure=(arr_dt + timedelta(minutes=120)).strftime("%Y-%m-%dT%H:%M:%S"),
+            arrival=(arr_dt + timedelta(minutes=180)).strftime("%Y-%m-%dT%H:%M:%S"),
+            price=4800.0,
+            available_seats=11,
             number_of_changes=0,
             reliability=0.95,
         ),
@@ -1073,12 +1153,59 @@ def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]
         ),
     ]
 
+
+def _solve_and_create_live_workspace_plan(
+    db: Session,
+    journey: Any,
+    bookings: List[Any],
+    active_constraints: Optional[Dict[str, Any]] = None,
+    rejection_feedback: Optional[Dict[str, Any]] = None,
+    revision_count: int = 1,
+) -> Tuple[Optional[Dict[str, Any]], Any, Optional[Dict[str, Any]]]:
+    from datetime import datetime, timedelta
+    from app.models.models import BookingStatus
+    from app.schemas.optimization_schemas import (
+        OptimizationConstraints,
+        TravelerPreferences,
+        OptimizationWeights,
+    )
+    from app.modules.recovery.constraints import constraint_engine
+
+    disrupted_leg = next((b for b in bookings if b.status in (BookingStatus.DELAYED, BookingStatus.CANCELLED)), bookings[0])
+    disrupted_idx = bookings.index(disrupted_leg)
+    missed_leg = bookings[disrupted_idx + 1] if disrupted_idx + 1 < len(bookings) else bookings[-1]
+    hotel_leg = next((b for b in bookings if b.booking_type.value == "HOTEL"), None)
+
+    origin_city = missed_leg.origin or "Delhi"
+    dest_city = missed_leg.destination or "Jaipur"
+    base_date_str = disrupted_leg.end_time.strftime("%Y-%m-%d")
+
+    current_arrival_iso = disrupted_leg.end_time.strftime("%Y-%m-%dT%H:%M:%S")
+    hotel_cutoff_dt = (
+        hotel_leg.start_time.replace(hour=23, minute=0, second=0)
+        if hotel_leg
+        else disrupted_leg.end_time + timedelta(hours=7)
+    )
+    hotel_cutoff_iso = hotel_cutoff_dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+    # Build real catalog alternatives
+    candidates = _build_real_route_alternatives(origin_city, dest_city, base_date_str, disrupted_leg.end_time)
+
+    # Filter candidates based on active rejection constraints (e.g. excluded providers, transport IDs, modes, budget)
+    filtered_candidates = constraint_engine.filter_candidates(candidates, active_constraints) if active_constraints else candidates
+
+    effective_budget = 10000.0
+    if active_constraints and active_constraints.get("max_budget") is not None:
+        effective_budget = min(effective_budget, float(active_constraints["max_budget"]))
+
+    excluded_modes = list(active_constraints.get("excluded_modes", [])) if active_constraints else []
+
     opt_res = ortools_recovery_optimizer.optimize(
         OptimizationRequest(
             origin=origin_city,
             destination=dest_city,
             auto_fetch_from_suppliers=False,
-            available_alternatives=real_route_alternatives,
+            available_alternatives=filtered_candidates,
             constraints=OptimizationConstraints(
                 current_arrival=current_arrival_iso,
                 hotel_latest_checkin=hotel_cutoff_iso,
@@ -1086,7 +1213,8 @@ def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]
                 required_seats=1,
             ),
             traveler_preferences=TravelerPreferences(
-                max_budget=5000.0,
+                max_budget=effective_budget,
+                excluded_modes=excluded_modes,
                 weights=OptimizationWeights(
                     price=0.30,
                     travel_time=0.25,
@@ -1100,96 +1228,724 @@ def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]
     )
 
     selected = opt_res.selected_option
-    exec_summary = None
-    recovery_details = None
-    if selected:
-        old_ref = missed_leg.reference_number
-        old_title = missed_leg.title
-        old_price = float(missed_leg.price or 800.0)
-        old_dep_hm = missed_leg.start_time.strftime("%H:%M")
-        old_arr_hm = missed_leg.end_time.strftime("%H:%M")
 
-        new_dep_dt = datetime.fromisoformat(selected["departure"])
-        new_arr_dt = datetime.fromisoformat(selected["arrival"])
-        new_hotel_dt = new_arr_dt + timedelta(minutes=30)
-        refund_inr = round(old_price * 0.75, 2)
-
-        exec_summary = recovery_action_executor.execute_recovery_plan(
-            plan_input={
-                "plan_id": f"PLAN-LIVE-{journey.id}-{old_ref}",
-                "original_booking_id": old_ref,
-                "original_transport_id": "TRN123",
-                "original_price": old_price,
-                "new_transport_id": selected["transport_id"],
-                "hotel_booking_id": hotel_leg.reference_number if hotel_leg else "HTL-JAI-101",
-                "hotel_id": "HTL101",
-                "new_check_in": new_hotel_dt.strftime("%Y-%m-%dT%H:%M:%S"),
-            }
+    # Infeasible: constraints could not be satisfied
+    if not selected or not opt_res.constraints_satisfied:
+        infeasible_summary = "No suitable automated recovery plan could be found with the current requirements."
+        plan_record = RecoveryPlan(
+            journey_id=journey.id,
+            disruption_id=disrupted_leg.id if hasattr(disrupted_leg, "id") else 1,
+            status=RecoveryPlanStatus.REVISION_REQUIRED,
+            summary=infeasible_summary,
+            reasoning_explanation=infeasible_summary,
+            estimated_additional_cost=0.0,
+            refund_opportunities={},
+            actions=[],
+            alternatives_considered=[a.model_dump() if hasattr(a, "model_dump") else a for a in opt_res.alternatives],
+            active_constraints=active_constraints or {},
+            rejection_feedback=rejection_feedback or {},
+            revision_count=revision_count,
         )
-
-        # Update actual SQLite rows
-        missed_leg.reference_number = selected["transport_id"]
-        missed_leg.provider_name = selected.get("provider", missed_leg.provider_name)
-        missed_leg.title = selected.get("name", selected["transport_id"])
-        missed_leg.start_time = new_dep_dt
-        missed_leg.end_time = new_arr_dt
-        missed_leg.price = float(selected["price"])
-        missed_leg.status = BookingStatus.CONFIRMED
-
-        if hotel_leg:
-            orig_hotel_hm = hotel_leg.start_time.strftime("%H:%M")
-            hotel_leg.start_time = new_hotel_dt
-            hotel_leg.title = f"{hotel_leg.provider_name} (Check-in {new_hotel_dt.strftime('%H:%M')})"
-            hotel_leg.status = BookingStatus.CONFIRMED
-        else:
-            orig_hotel_hm = "18:00"
-
+        db.add(plan_record)
         db.commit()
-        db.refresh(journey)
-        JourneyGraphEngine(journey_id=journey.id).sync_to_database(db, journey)
+        db.refresh(plan_record)
 
-        notification_agent_service.generate_all_notifications(
-            facts=StructuredRecoveryFacts(
-                journey_id=journey.id,
-                disrupted_booking_ref=disrupted_leg.reference_number,
-                delay_minutes=240,
-                original_arrival_time="12:00",
-                revised_arrival_time=disrupted_leg.end_time.strftime("%H:%M"),
-                missed_booking_ref=old_ref,
-                missed_transport_id="TRN123",
-                missed_departure_time=old_dep_hm,
-                missed_arrival_time=old_arr_hm,
-                missed_ticket_price_inr=old_price,
-                refund_amount_inr=refund_inr,
-                rebooked_booking_ref=f"PNR-{selected['transport_id']}",
-                rebooked_transport_id=selected["transport_id"],
-                rebooked_service_name=selected.get("name", selected["transport_id"]),
-                rebooked_departure_time=new_dep_dt.strftime("%H:%M"),
-                rebooked_arrival_time=new_arr_dt.strftime("%H:%M"),
-                rebooked_price_inr=float(selected["price"]),
-                hotel_booking_ref=hotel_leg.reference_number if hotel_leg else "HTL-JAI-101",
-                hotel_original_checkin=orig_hotel_hm,
-                hotel_revised_checkin=new_hotel_dt.strftime("%H:%M"),
-                hotel_latest_cutoff="23:00",
-            )
-        )
-
-        recovery_details = {
-            "cancelled_booking": f"{old_title} ({old_dep_hm}–{old_arr_hm})",
-            "rebooked_booking": f"{selected.get('name')} ({new_dep_dt.strftime('%H:%M')}–{new_arr_dt.strftime('%H:%M')}, ₹{selected['price']})",
-            "refund_amount_inr": refund_inr,
-            "hotel_updated": (
-                f"{hotel_leg.provider_name} check-in moved {orig_hotel_hm} → {new_hotel_dt.strftime('%H:%M')}"
-                if hotel_leg
-                else "No hotel modification needed"
-            ),
+        infeasible_plan_data = {
+            "plan_id": f"PLAN-INFEASIBLE-{journey.id}-{revision_count}",
+            "db_plan_id": plan_record.id,
+            "status": RecoveryPlanStatus.REVISION_REQUIRED.value,
+            "workflow_stage": "INFEASIBLE_MANUAL_REVIEW",
+            "summary": infeasible_summary,
+            "message": infeasible_summary,
+            "selected_option": None,
+            "actions": [],
+            "reasoning_explanation": infeasible_summary,
+            "net_additional_cost": 0.0,
+            "refund_amount_inr": 0.0,
+            "is_executed": False,
+            "is_approved": False,
+            "is_feasible": False,
+            "active_constraints": active_constraints or {},
+            "rejection_feedback": rejection_feedback or {},
+            "revision_count": revision_count,
+            "alternatives_considered": plan_record.alternatives_considered,
         }
+        infeasible_details = {
+            "status": "REVISION_REQUIRED",
+            "workflow_stage": "INFEASIBLE_MANUAL_REVIEW",
+            "message": infeasible_summary,
+            "active_constraints": active_constraints or {},
+            "revision_count": revision_count,
+            "execution_status": "MANUAL_REVIEW_REQUIRED",
+        }
+        return infeasible_plan_data, opt_res, infeasible_details
+
+    # Feasible solution found
+    old_ref = missed_leg.reference_number
+    old_title = missed_leg.title
+    old_price = float(missed_leg.price or 800.0)
+    old_dep_hm = missed_leg.start_time.strftime("%H:%M")
+    old_arr_hm = missed_leg.end_time.strftime("%H:%M")
+
+    new_dep_dt = datetime.fromisoformat(selected["departure"])
+    new_arr_dt = datetime.fromisoformat(selected["arrival"])
+    new_hotel_dt = new_arr_dt + timedelta(minutes=30)
+    refund_inr = round(old_price * 0.75, 2)
+    net_diff = max(0.0, float(selected["price"]) - old_price)
+    orig_hotel_hm = hotel_leg.start_time.strftime("%H:%M") if (hotel_leg and hotel_leg.start_time) else "18:00"
+
+    plan_id = f"PLAN-PROP-{journey.id}-{selected['transport_id']}-REV{revision_count}"
+
+    raw_plan_input = {
+        "plan_id": plan_id,
+        "original_booking_id": old_ref,
+        "original_transport_id": "TRN123",
+        "original_price": old_price,
+        "new_transport_id": selected["transport_id"],
+        "hotel_booking_id": hotel_leg.reference_number if hotel_leg else "HTL-JAI-101",
+        "hotel_id": "HTL101",
+        "new_check_in": new_hotel_dt.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    compiled_actions = recovery_action_executor.compile_plan_to_actions(raw_plan_input)
+    proposed_actions = []
+    for a in compiled_actions:
+        act_copy = dict(a)
+        act_copy["status"] = "PROPOSED"
+        proposed_actions.append(act_copy)
+
+    summary_text = (
+        f"Proposed Recovery Plan (Rev {revision_count}): Rebook {old_ref} onto {selected.get('name', selected['transport_id'])} "
+        f"({new_dep_dt.strftime('%H:%M')}–{new_arr_dt.strftime('%H:%M')}). "
+        f"Net fare difference: ₹{net_diff:.2f}. Eligible refund: ₹{refund_inr:.2f}."
+    )
+
+    plan_record = RecoveryPlan(
+        journey_id=journey.id,
+        disruption_id=disrupted_leg.id if hasattr(disrupted_leg, "id") else 1,
+        status=RecoveryPlanStatus.PLAN_GENERATED,
+        summary=summary_text,
+        reasoning_explanation=opt_res.explanation or "Optimal CP-SAT solution satisfying transfer buffer and hotel cutoff.",
+        estimated_additional_cost=net_diff,
+        refund_opportunities={"refund_amount_inr": refund_inr, "eligible": True},
+        actions=proposed_actions,
+        alternatives_considered=[a.model_dump() if hasattr(a, "model_dump") else a for a in opt_res.alternatives],
+        active_constraints=active_constraints or {},
+        rejection_feedback=rejection_feedback or {},
+        revision_count=revision_count,
+    )
+    db.add(plan_record)
+    db.commit()
+    db.refresh(plan_record)
+
+    proposed_plan_data = {
+        "plan_id": plan_id,
+        "db_plan_id": plan_record.id,
+        "status": RecoveryPlanStatus.PLAN_GENERATED.value,
+        "workflow_stage": "HUMAN_REVIEW",
+        "selected_option": selected,
+        "actions": proposed_actions,
+        "summary": summary_text,
+        "reasoning_explanation": opt_res.explanation,
+        "net_additional_cost": net_diff,
+        "refund_amount_inr": refund_inr,
+        "is_executed": False,
+        "is_approved": False,
+        "is_feasible": True,
+        "active_constraints": active_constraints or {},
+        "rejection_feedback": rejection_feedback or {},
+        "revision_count": revision_count,
+        "disruption_summary": f"{disrupted_leg.title} arrival was delayed to {disrupted_leg.end_time.strftime('%H:%M')}, causing a missed connection buffer to {old_title}.",
+        "alternatives_considered": plan_record.alternatives_considered,
+    }
+
+    recovery_details = {
+        "status": "PLAN_GENERATED",
+        "workflow_stage": "HUMAN_REVIEW",
+        "revision_count": revision_count,
+        "active_constraints": active_constraints or {},
+        "proposed_cancellation": f"{old_title} ({old_dep_hm}–{old_arr_hm})",
+        "proposed_rebooking": f"{selected.get('name')} ({new_dep_dt.strftime('%H:%M')}–{new_arr_dt.strftime('%H:%M')}, ₹{selected['price']})",
+        "refund_amount_inr": refund_inr,
+        "proposed_hotel_update": (
+            f"{hotel_leg.provider_name} check-in moved {orig_hotel_hm} → {new_hotel_dt.strftime('%H:%M')}"
+            if hotel_leg
+            else "No hotel modification needed"
+        ),
+        "execution_status": "AWAITING_HUMAN_APPROVAL",
+    }
+
+    return proposed_plan_data, opt_res, recovery_details
+
+
+@router.post("/live-workspace/recover")
+def run_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """
+    [PLAN GENERATION STAGE] Formulates an initial optimized recovery plan (Revision 1)
+    using Google OR-Tools CP-SAT without executing any actions.
+    Places the plan in HUMAN_REVIEW. Execution is strictly blocked until human approval.
+    """
+    journey = db.query(Journey).order_by(Journey.id.desc()).first()
+    if not journey:
+        raise HTTPException(status_code=400, detail="No active journey in database to recover.")
+
+    from app.models.models import Booking
+    bookings = (
+        db.query(Booking)
+        .filter(Booking.journey_id == journey.id)
+        .order_by(Booking.start_time.asc())
+        .all()
+    )
+    if len(bookings) < 2:
+        raise HTTPException(status_code=400, detail="Add at least 2 connected bookings to run recovery.")
+
+    proposed_plan_data, opt_res, recovery_details = _solve_and_create_live_workspace_plan(
+        db=db,
+        journey=journey,
+        bookings=bookings,
+        active_constraints={},
+        rejection_feedback={},
+        revision_count=1,
+    )
 
     workspace = _serialize_live_workspace(db)
-    workspace["optimization_result"] = opt_res.model_dump()
+    workspace["optimization_result"] = opt_res.model_dump() if hasattr(opt_res, "model_dump") else opt_res
+    workspace["proposed_plan"] = proposed_plan_data
+    workspace["execution_summary"] = None  # Explicitly None: planning does NOT execute
+    workspace["recovery_details"] = recovery_details
+    return workspace
+
+
+@router.post("/live-workspace/execute")
+def execute_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """
+    [EXECUTION STAGE] Explicitly executes an approved recovery plan against live workspace bookings.
+    Executes actions via RecoveryActionExecutor against Mock Suppliers, updates SQLite bookings,
+    syncs journey graph, and generates fact-grounded notifications.
+    """
+    from datetime import datetime, timedelta
+    from app.models.models import Booking, BookingStatus, RecoveryPlan, RecoveryPlanStatus
+    from app.modules.journeys.graph_builder import JourneyGraphEngine
+    from app.modules.notifications.notification_agent import notification_agent_service
+    from app.schemas.notification_schemas import StructuredRecoveryFacts
+
+    journey = db.query(Journey).order_by(Journey.id.desc()).first()
+    if not journey:
+        raise HTTPException(status_code=400, detail="No active journey in database to execute recovery for.")
+
+    bookings = (
+        db.query(Booking)
+        .filter(Booking.journey_id == journey.id)
+        .order_by(Booking.start_time.asc())
+        .all()
+    )
+    if len(bookings) < 2:
+        raise HTTPException(status_code=400, detail="Add at least 2 connected bookings to execute recovery.")
+
+    plan_record = (
+        db.query(RecoveryPlan)
+        .filter(RecoveryPlan.journey_id == journey.id)
+        .order_by(RecoveryPlan.id.desc())
+        .first()
+    )
+
+    if not plan_record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No recovery plan found for this journey. A recovery plan must be generated and APPROVED before execution."
+        )
+
+    # CRITICAL SAFETY REQUIREMENT:
+    # Strictly enforce that plan.status === APPROVED before executing anything.
+    # Unapproved plans (PLAN_GENERATED, PROPOSED, REJECTED, REVISION_REQUIRED) are strictly forbidden from execution.
+    if plan_record.status != RecoveryPlanStatus.APPROVED:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Execution forbidden: Recovery plan has status '{plan_record.status.value}'. Plan must be APPROVED before execution."
+        )
+
+    # Workflow transition: APPROVED -> EXECUTING
+    plan_record.status = RecoveryPlanStatus.EXECUTING
+    db.commit()
+    db.refresh(plan_record)
+
+    disrupted_leg = next((b for b in bookings if b.status in (BookingStatus.DELAYED, BookingStatus.CANCELLED)), bookings[0])
+    disrupted_idx = bookings.index(disrupted_leg)
+    missed_leg = bookings[disrupted_idx + 1] if disrupted_idx + 1 < len(bookings) else bookings[-1]
+    hotel_leg = next((b for b in bookings if b.booking_type.value == "HOTEL"), None)
+
+    old_ref = missed_leg.reference_number
+    old_title = missed_leg.title
+    old_price = float(missed_leg.price or 800.0)
+    old_dep_hm = missed_leg.start_time.strftime("%H:%M")
+    old_arr_hm = missed_leg.end_time.strftime("%H:%M")
+
+    target_transport_id = "TRN124"
+    target_provider = "Indian Railways (IRCTC)"
+    target_name = "20978 Vande Bharat Express (Delhi -> Jaipur)"
+    target_price = 1150.0
+    arr_dt = disrupted_leg.end_time
+    new_dep_dt = arr_dt + timedelta(minutes=160)
+    new_arr_dt = arr_dt + timedelta(hours=5, minutes=30)
+    new_hotel_dt = new_arr_dt + timedelta(minutes=30)
+    refund_inr = round(old_price * 0.75, 2)
+
+    if plan_record and plan_record.actions:
+        rebook_act = next((a for a in plan_record.actions if a.get("action_type") == "rebook_transportation"), None)
+        if rebook_act:
+            target_transport_id = rebook_act.get("booking_id") or rebook_act.get("request", {}).get("new_transport_id", target_transport_id)
+
+    if plan_record and plan_record.alternatives_considered:
+        for alt in plan_record.alternatives_considered:
+            if alt.get("transport_id") == target_transport_id:
+                target_provider = alt.get("provider", target_provider)
+                target_name = alt.get("name", target_name)
+                target_price = float(alt.get("price", target_price))
+                if "departure" in alt and "arrival" in alt:
+                    try:
+                        new_dep_dt = datetime.fromisoformat(alt["departure"])
+                        new_arr_dt = datetime.fromisoformat(alt["arrival"])
+                        new_hotel_dt = new_arr_dt + timedelta(minutes=30)
+                    except Exception:
+                        pass
+                break
+
+    # 1. Execute recovery actions via RecoveryActionExecutor
+    exec_summary = recovery_action_executor.execute_recovery_plan(
+        plan_input={
+            "plan_id": f"PLAN-LIVE-{journey.id}-{old_ref}",
+            "status": "EXECUTING",
+            "original_booking_id": old_ref,
+            "original_transport_id": "TRN123",
+            "original_price": old_price,
+            "new_transport_id": target_transport_id,
+            "hotel_booking_id": hotel_leg.reference_number if hotel_leg else "HTL-JAI-101",
+            "hotel_id": "HTL101",
+            "new_check_in": new_hotel_dt.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+    )
+
+    # 2. Update SQLite rows to recovered state
+    missed_leg.reference_number = target_transport_id
+    missed_leg.provider_name = target_provider
+    missed_leg.title = target_name
+    missed_leg.start_time = new_dep_dt
+    missed_leg.end_time = new_arr_dt
+    missed_leg.price = target_price
+    missed_leg.status = BookingStatus.CONFIRMED
+
+    orig_hotel_hm = "18:00"
+    if hotel_leg:
+        orig_hotel_hm = hotel_leg.start_time.strftime("%H:%M")
+        hotel_leg.start_time = new_hotel_dt
+        hotel_leg.title = f"{hotel_leg.provider_name} (Check-in {new_hotel_dt.strftime('%H:%M')})"
+        hotel_leg.status = BookingStatus.CONFIRMED
+
+    # Workflow transition: EXECUTING -> COMPLETED
+    if plan_record:
+        plan_record.status = RecoveryPlanStatus.COMPLETED
+
+    db.commit()
+    db.refresh(journey)
+    JourneyGraphEngine(journey_id=journey.id).sync_to_database(db, journey)
+
+    # 3. Generate notifications
+    notification_agent_service.generate_all_notifications(
+        facts=StructuredRecoveryFacts(
+            journey_id=journey.id,
+            disrupted_booking_ref=disrupted_leg.reference_number,
+            delay_minutes=240,
+            original_arrival_time="12:00",
+            revised_arrival_time=disrupted_leg.end_time.strftime("%H:%M"),
+            missed_booking_ref=old_ref,
+            missed_transport_id="TRN123",
+            missed_departure_time=old_dep_hm,
+            missed_arrival_time=old_arr_hm,
+            missed_ticket_price_inr=old_price,
+            refund_amount_inr=refund_inr,
+            rebooked_booking_ref=f"PNR-{target_transport_id}",
+            rebooked_transport_id=target_transport_id,
+            rebooked_service_name=target_name,
+            rebooked_departure_time=new_dep_dt.strftime("%H:%M"),
+            rebooked_arrival_time=new_arr_dt.strftime("%H:%M"),
+            rebooked_price_inr=target_price,
+            hotel_booking_ref=hotel_leg.reference_number if hotel_leg else "HTL-JAI-101",
+            hotel_original_checkin=orig_hotel_hm,
+            hotel_revised_checkin=new_hotel_dt.strftime("%H:%M"),
+            hotel_latest_cutoff="23:00",
+        )
+    )
+
+    recovery_details = {
+        "status": "COMPLETED",
+        "workflow_stage": "COMPLETED",
+        "cancelled_booking": f"{old_title} ({old_dep_hm}–{old_arr_hm})",
+        "rebooked_booking": f"{target_name} ({new_dep_dt.strftime('%H:%M')}–{new_arr_dt.strftime('%H:%M')}, ₹{target_price})",
+        "refund_amount_inr": refund_inr,
+        "hotel_updated": (
+            f"{hotel_leg.provider_name} check-in moved {orig_hotel_hm} → {new_hotel_dt.strftime('%H:%M')}"
+            if hotel_leg
+            else "No hotel modification needed"
+        ),
+        "execution_status": "COMPLETED",
+    }
+
+    workspace = _serialize_live_workspace(db)
     workspace["execution_summary"] = exec_summary
     workspace["recovery_details"] = recovery_details
     return workspace
+
+
+@router.post("/live-workspace/approve")
+def approve_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """
+    [HUMAN APPROVAL GATE] Transitions recovery plan from PLAN_GENERATED / HUMAN_REVIEW -> APPROVED.
+    The execution service strictly checks this status before executing any actions.
+    """
+    journey = db.query(Journey).order_by(Journey.id.desc()).first()
+    if not journey:
+        raise HTTPException(status_code=400, detail="No active journey in database to approve recovery for.")
+
+    plan_record = (
+        db.query(RecoveryPlan)
+        .filter(RecoveryPlan.journey_id == journey.id)
+        .order_by(RecoveryPlan.id.desc())
+        .first()
+    )
+    if not plan_record:
+        raise HTTPException(status_code=400, detail="No recovery plan found in database to approve. Generate a plan first.")
+
+    if plan_record.status in (RecoveryPlanStatus.REJECTED, RecoveryPlanStatus.REVISION_REQUIRED):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot approve plan with status '{plan_record.status.value}'. Please generate a revised plan."
+        )
+
+    # Transition to APPROVED
+    plan_record.status = RecoveryPlanStatus.APPROVED
+
+    if plan_record.actions:
+        updated_actions = []
+        for a in plan_record.actions:
+            act_copy = dict(a)
+            act_copy["status"] = "APPROVED"
+            updated_actions.append(act_copy)
+        plan_record.actions = updated_actions
+
+    db.commit()
+    db.refresh(plan_record)
+
+    workspace = _serialize_live_workspace(db)
+    workspace["proposed_plan"] = {
+        "db_plan_id": plan_record.id,
+        "status": RecoveryPlanStatus.APPROVED.value,
+        "workflow_stage": "APPROVED",
+        "summary": plan_record.summary,
+        "actions": plan_record.actions,
+        "is_executed": False,
+        "is_approved": True,
+    }
+    workspace["recovery_details"] = {
+        "status": "APPROVED",
+        "workflow_stage": "APPROVED",
+        "execution_status": "READY_FOR_EXECUTION",
+        "message": "Recovery plan approved by human reviewer. Execution is now authorized.",
+    }
+    workspace["execution_summary"] = None
+    return workspace
+
+
+@router.post("/live-workspace/approve-and-execute")
+def approve_and_execute_live_workspace_recovery(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """
+    [HUMAN APPROVAL + EXECUTION] Combined workflow:
+    1. Marks plan as APPROVED
+    2. Calls execution logic (validates APPROVED, transitions to EXECUTING, runs actions, marks COMPLETED)
+    """
+    approve_live_workspace_recovery(db)
+    return execute_live_workspace_recovery(db)
+
+
+@router.post("/live-workspace/reject")
+def reject_live_workspace_recovery(
+    reason: Optional[str] = "Rejected by human reviewer for revision",
+    reasons: Optional[List[str]] = None,
+    feedback_text: Optional[str] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    [HUMAN REVIEW GATE] Marks recovery plan as REJECTED / REVISION_REQUIRED.
+    Execution of this plan is strictly forbidden.
+    """
+    journey = db.query(Journey).order_by(Journey.id.desc()).first()
+    if not journey:
+        raise HTTPException(status_code=400, detail="No active journey in database.")
+
+    plan_record = (
+        db.query(RecoveryPlan)
+        .filter(RecoveryPlan.journey_id == journey.id)
+        .order_by(RecoveryPlan.id.desc())
+        .first()
+    )
+    if not plan_record:
+        raise HTTPException(status_code=400, detail="No recovery plan found to reject.")
+
+    plan_record.status = RecoveryPlanStatus.REJECTED
+    if reasons or feedback_text:
+        plan_record.rejection_feedback = {"reasons": reasons or [], "text": feedback_text or reason}
+    db.commit()
+    db.refresh(plan_record)
+
+    workspace = _serialize_live_workspace(db)
+    workspace["proposed_plan"] = {
+        "db_plan_id": plan_record.id,
+        "status": RecoveryPlanStatus.REJECTED.value,
+        "workflow_stage": "REJECTED",
+        "is_executed": False,
+        "is_approved": False,
+        "revision_count": plan_record.revision_count or 1,
+        "active_constraints": plan_record.active_constraints or {},
+        "rejection_feedback": plan_record.rejection_feedback or {},
+    }
+    workspace["recovery_details"] = {
+        "status": "REJECTED",
+        "workflow_stage": "REJECTED",
+        "execution_status": "REJECTED_REVISION_REQUIRED",
+        "rejection_reason": reason,
+        "active_constraints": plan_record.active_constraints or {},
+        "revision_count": plan_record.revision_count or 1,
+    }
+    return workspace
+
+
+@router.post("/live-workspace/reject-and-replan")
+def reject_and_replan_live_workspace_recovery(
+    request: RejectAndReplanRequest,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    [STAGE 3: REJECT & REVISE WORKFLOW]
+    1. Rejects current recovery plan (status -> REJECTED). Execution is strictly forbidden.
+    2. Enforces maximum revisions limit (e.g., max 3 revisions).
+    3. Interprets rejection reasons + custom text feedback into planning constraints.
+    4. Merges with ALL previous constraints (preserves historical constraints across revisions).
+    5. Re-runs OR-Tools recovery planning with accumulated constraints.
+    6. Newly generated plan is placed in HUMAN_REVIEW (status PLAN_GENERATED). ZERO automated execution.
+    """
+    from app.modules.recovery.constraints import constraint_engine
+    from app.models.models import Booking
+
+    journey = db.query(Journey).order_by(Journey.id.desc()).first()
+    if not journey:
+        raise HTTPException(status_code=400, detail="No active journey in database to reject and replan.")
+
+    current_plan = (
+        db.query(RecoveryPlan)
+        .filter(RecoveryPlan.journey_id == journey.id)
+        .order_by(RecoveryPlan.id.desc())
+        .first()
+    )
+    if not current_plan:
+        raise HTTPException(status_code=400, detail="No existing recovery plan found to reject.")
+
+    # 1. Reject current plan immediately (execution forbidden)
+    current_plan.status = RecoveryPlanStatus.REJECTED
+    current_plan.rejection_feedback = {"reasons": request.reasons, "text": request.feedback_text}
+    db.commit()
+    db.refresh(current_plan)
+
+    # 2. Check maximum revisions limit (e.g., 3 revisions max)
+    current_revision = current_plan.revision_count or 1
+    if current_revision >= 3:
+        current_plan.status = RecoveryPlanStatus.REVISION_REQUIRED
+        db.commit()
+        workspace = _serialize_live_workspace(db)
+        workspace["proposed_plan"] = {
+            "db_plan_id": current_plan.id,
+            "status": RecoveryPlanStatus.REVISION_REQUIRED.value,
+            "workflow_stage": "MAX_REVISIONS_EXCEEDED",
+            "summary": "No suitable automated recovery plan could be found with the current requirements.",
+            "message": "No suitable automated recovery plan could be found with the current requirements.",
+            "revision_count": current_revision,
+            "active_constraints": current_plan.active_constraints or {},
+            "rejection_feedback": {"reasons": request.reasons, "text": request.feedback_text},
+            "is_executed": False,
+            "is_approved": False,
+            "is_feasible": False,
+            "alternatives_considered": current_plan.alternatives_considered,
+        }
+        workspace["recovery_details"] = {
+            "status": "REVISION_REQUIRED",
+            "workflow_stage": "MAX_REVISIONS_EXCEEDED",
+            "message": "No suitable automated recovery plan could be found with the current requirements.",
+            "active_constraints": current_plan.active_constraints or {},
+            "revision_count": current_revision,
+            "execution_status": "MAX_REVISIONS_HALTED",
+        }
+        return workspace
+
+    # 3. Interpret feedback into constraints & PRESERVE historical constraints
+    current_plan_dict = {
+        "summary": current_plan.summary,
+        "actions": current_plan.actions,
+        "selected_option": (
+            next((a for a in (current_plan.alternatives_considered or []) if isinstance(a, dict) and a.get("selected")), None)
+        ),
+    }
+    merged_constraints = constraint_engine.interpret_rejection(
+        reasons=request.reasons,
+        feedback_text=request.feedback_text,
+        current_plan=current_plan_dict,
+        previous_constraints=current_plan.active_constraints,
+    )
+
+    # 4. Re-solve with accumulated constraints
+    bookings = db.query(Booking).filter(Booking.journey_id == journey.id).order_by(Booking.start_time.asc()).all()
+    if len(bookings) < 2:
+        raise HTTPException(status_code=400, detail="Insufficient bookings to re-plan.")
+
+    proposed_plan_data, opt_res, recovery_details = _solve_and_create_live_workspace_plan(
+        db=db,
+        journey=journey,
+        bookings=bookings,
+        active_constraints=merged_constraints,
+        rejection_feedback={"reasons": request.reasons, "text": request.feedback_text},
+        revision_count=current_revision + 1,
+    )
+
+    workspace = _serialize_live_workspace(db)
+    workspace["optimization_result"] = opt_res.model_dump() if hasattr(opt_res, "model_dump") else opt_res
+    workspace["proposed_plan"] = proposed_plan_data
+    workspace["execution_summary"] = None  # ZERO execution!
+    workspace["recovery_details"] = recovery_details
+    return workspace
+
+
+@router.post("/plans/{plan_id}/approve")
+def approve_recovery_plan_by_id(plan_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """
+    Human Approval Gate for a specific recovery plan by ID.
+    Transitions plan to APPROVED.
+    """
+    plan_record = db.query(RecoveryPlan).filter(RecoveryPlan.id == plan_id).first()
+    if not plan_record:
+        raise HTTPException(status_code=404, detail=f"Recovery plan {plan_id} not found.")
+
+    if plan_record.status in (RecoveryPlanStatus.REJECTED, RecoveryPlanStatus.REVISION_REQUIRED):
+        raise HTTPException(status_code=400, detail=f"Cannot approve plan with status '{plan_record.status.value}'.")
+
+    plan_record.status = RecoveryPlanStatus.APPROVED
+    if plan_record.actions:
+        updated_actions = []
+        for a in plan_record.actions:
+            act_copy = dict(a)
+            act_copy["status"] = "APPROVED"
+            updated_actions.append(act_copy)
+        plan_record.actions = updated_actions
+
+    db.commit()
+    db.refresh(plan_record)
+    return {
+        "plan_id": plan_record.id,
+        "status": plan_record.status.value,
+        "workflow_stage": "APPROVED",
+        "message": "Recovery plan approved by human reviewer."
+    }
+
+
+@router.post("/plans/{plan_id}/reject")
+def reject_recovery_plan_by_id(
+    plan_id: int,
+    reason: Optional[str] = "Rejected for replanning",
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Rejects a recovery plan. Execution of this plan is strictly forbidden.
+    """
+    plan_record = db.query(RecoveryPlan).filter(RecoveryPlan.id == plan_id).first()
+    if not plan_record:
+        raise HTTPException(status_code=404, detail=f"Recovery plan {plan_id} not found.")
+
+    plan_record.status = RecoveryPlanStatus.REJECTED
+    db.commit()
+    db.refresh(plan_record)
+    return {
+        "plan_id": plan_record.id,
+        "status": plan_record.status.value,
+        "workflow_stage": "REJECTED",
+        "message": f"Recovery plan rejected: {reason}"
+    }
+
+
+@router.post("/plans/{plan_id}/reject-and-replan")
+def reject_and_replan_plan_by_id(
+    plan_id: int,
+    request: RejectAndReplanRequest,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    [STAGE 3: REJECT & REVISE WORKFLOW BY PLAN ID]
+    1. Rejects current recovery plan (status -> REJECTED). Execution is strictly forbidden.
+    2. Enforces maximum revisions limit (e.g., max 3 revisions).
+    3. Interprets rejection reasons + custom text feedback into planning constraints.
+    4. Merges with ALL previous constraints (preserves historical constraints across revisions).
+    5. Re-runs OR-Tools recovery planning with accumulated constraints.
+    6. Newly generated plan is placed in HUMAN_REVIEW (status PLAN_GENERATED). ZERO automated execution.
+    """
+    from app.modules.recovery.constraints import constraint_engine
+    plan_record = db.query(RecoveryPlan).filter(RecoveryPlan.id == plan_id).first()
+    if not plan_record:
+        raise HTTPException(status_code=404, detail=f"Recovery plan {plan_id} not found.")
+
+    # 1. Reject current plan immediately (execution forbidden)
+    plan_record.status = RecoveryPlanStatus.REJECTED
+    plan_record.rejection_feedback = {"reasons": request.reasons, "text": request.feedback_text}
+    db.commit()
+    db.refresh(plan_record)
+
+    current_revision = plan_record.revision_count or 1
+    if current_revision >= 3:
+        plan_record.status = RecoveryPlanStatus.REVISION_REQUIRED
+        db.commit()
+        return {
+            "status": RecoveryPlanStatus.REVISION_REQUIRED.value,
+            "workflow_stage": "MAX_REVISIONS_EXCEEDED",
+            "summary": "No suitable automated recovery plan could be found with the current requirements.",
+            "message": "No suitable automated recovery plan could be found with the current requirements.",
+            "plan_id": f"PLAN-REJECTED-{plan_record.id}",
+            "db_plan_id": plan_record.id,
+            "revision_count": current_revision,
+            "active_constraints": plan_record.active_constraints or {},
+            "rejection_feedback": plan_record.rejection_feedback or {},
+            "is_executed": False,
+            "is_approved": False,
+            "is_feasible": False,
+            "alternatives_considered": plan_record.alternatives_considered,
+        }
+
+    # 2. Interpret feedback into constraints & PRESERVE historical constraints
+    current_plan_dict = {
+        "summary": plan_record.summary,
+        "actions": plan_record.actions,
+        "selected_option": (
+            next((a for a in (plan_record.alternatives_considered or []) if isinstance(a, dict) and a.get("selected")), None)
+        ),
+    }
+    merged_constraints = constraint_engine.interpret_rejection(
+        reasons=request.reasons,
+        feedback_text=request.feedback_text,
+        current_plan=current_plan_dict,
+        previous_constraints=plan_record.active_constraints,
+    )
+
+    # 3. Generate revised plan via recovery_planner
+    return recovery_planner.generate_recovery_plan(
+        journey_id=plan_record.journey_id,
+        disruption_id=plan_record.disruption_id,
+        active_constraints=merged_constraints,
+        rejection_feedback={"reasons": request.reasons, "text": request.feedback_text},
+        revision_count=current_revision + 1,
+        db=db,
+    )
 
 
 

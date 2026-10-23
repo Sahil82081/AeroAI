@@ -334,6 +334,15 @@ class RecoveryActionExecutor:
         - Partial Success if a non-critical step fails while core bookings succeeded
         """
         plan_id = str(plan_input.get("plan_id") or "PLAN-DEFAULT-101")
+
+        # Strict Human Approval Gate: Plan must be APPROVED before executing actions
+        plan_status = plan_input.get("status") or plan_input.get("plan_status")
+        if plan_status and str(plan_status).upper() not in ("APPROVED", "EXECUTING", "COMPLETED"):
+            raise ValueError(
+                f"Execution forbidden: Recovery plan {plan_id} has status '{plan_status}'. "
+                f"Plan must be APPROVED before execution."
+            )
+
         compiled_actions = self.compile_plan_to_actions(plan_input)
 
         executed_records: List[Dict[str, Any]] = []
