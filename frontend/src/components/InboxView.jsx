@@ -162,12 +162,12 @@ export function InboxView({
 
         {/* Email Forwarding Simulator */}
         <div className="lg:col-span-2 p-3.5 sm:p-4 rounded-xl bg-surface-container-low/90 backdrop-blur-2xl border border-surface-container-high shadow-glass-card space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="flex items-center gap-1.5">
-              <Send className="w-3.5 h-3.5 text-sky-400" />
+              <Send className="w-3.5 h-3.5 text-sky-400 shrink-0" />
               <h3 className="text-xs sm:text-sm font-bold text-white font-display">Simulated Booking Email Forwarder</h3>
             </div>
-            <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex items-center gap-1.5 text-xs self-start sm:self-auto">
               <span className="text-on-surface-variant font-mono text-[11px]">Engine:</span>
               <select
                 value={parserMode}
@@ -216,14 +216,14 @@ export function InboxView({
               />
             </div>
 
-            <div className="flex items-center justify-between pt-0.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
               <span className="text-[10px] text-outline font-mono">
-                Destination: <span className="text-on-surface-variant">inbox@autonomous-recovery.travel</span>
+                Destination: <span className="text-on-surface-variant break-all">inbox@autonomous-recovery.travel</span>
               </span>
               <button
                 type="submit"
                 disabled={forwardingLoading || !customSubject || !customBody}
-                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition shadow-[0_0_12px_rgba(0,229,255,0.25)] font-display h-8.5"
+                className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition shadow-[0_0_12px_rgba(0,229,255,0.25)] font-display h-8.5"
               >
                 <Send className={`w-3 h-3 ${forwardingLoading ? 'animate-pulse' : ''}`} />
                 <span>{forwardingLoading ? 'Ingesting & Parsing...' : 'Forward Email to System'}</span>
@@ -307,18 +307,18 @@ export function InboxView({
           {selectedEmail ? (
             <>
               {/* Header */}
-              <div className="flex items-start justify-between border-b border-surface-container-high pb-3">
-                <div>
-                  <div className="flex items-center gap-2 text-[11px] text-on-surface-variant mb-0.5 font-mono">
-                    <span>From: <strong className="text-slate-200">{selectedEmail.sender}</strong></span>
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-surface-container-high pb-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] text-on-surface-variant mb-0.5 font-mono">
+                    <span>From: <strong className="text-slate-200 break-all">{selectedEmail.sender}</strong></span>
                     <span>&bull;</span>
                     <span>To: {selectedEmail.recipient}</span>
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight font-display">
+                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight font-display break-words">
                     {selectedEmail.subject}
                   </h3>
                 </div>
-                <div>{getStatusBadge(selectedEmail.parsing_status)}</div>
+                <div className="shrink-0">{getStatusBadge(selectedEmail.parsing_status)}</div>
               </div>
 
               {/* Extraction Metrics Row */}

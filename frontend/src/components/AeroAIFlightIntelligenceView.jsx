@@ -201,41 +201,41 @@ export function AeroAIFlightIntelligenceView() {
         </div>
 
         {/* Segmented Viewport Switcher - Spacious & Intentional */}
-        <div className="inline-flex items-center flex-wrap p-1.5 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm gap-2 shrink-0 self-start lg:self-auto">
+        <div className="flex flex-wrap sm:inline-flex items-center p-1.5 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('intelligence')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer h-9 sm:h-9.5 ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer h-9 sm:h-9.5 ${
               activeTab === 'intelligence'
                 ? 'bg-surface-container-high text-primary-container shadow-sm border border-primary/20'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50'
             }`}
             type="button"
           >
-            <Plane className="w-4 h-4" />
+            <Plane className="w-4 h-4 shrink-0" />
             <span className="leading-none text-left">Flight Radar &amp; Predictor</span>
           </button>
           <button
             onClick={() => setActiveTab('benchmarks')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer h-9 sm:h-9.5 ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer h-9 sm:h-9.5 ${
               activeTab === 'benchmarks'
                 ? 'bg-surface-container-high text-primary-container shadow-sm border border-primary/20'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50'
             }`}
             type="button"
           >
-            <BarChart3 className="w-4 h-4" />
-            <span className="leading-none text-left">Model Benchmarks &amp; Metrics</span>
+            <BarChart3 className="w-4 h-4 shrink-0" />
+            <span className="leading-none text-left">Model Benchmarks</span>
           </button>
           <button
             onClick={() => setActiveTab('agent')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer h-9 sm:h-9.5 ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer h-9 sm:h-9.5 ${
               activeTab === 'agent'
                 ? 'bg-surface-container-high text-primary-container shadow-sm border border-primary/20'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50'
             }`}
             type="button"
           >
-            <Bot className="w-4 h-4" />
+            <Bot className="w-4 h-4 shrink-0" />
             <span className="leading-none text-left">AeroAI Agent</span>
           </button>
         </div>
@@ -247,28 +247,28 @@ export function AeroAIFlightIntelligenceView() {
       {activeTab === 'intelligence' && (
         <div className="space-y-6 sm:space-y-8">
           {/* Search, Filter & Quick Presets Toolbar */}
-          <div className="w-full p-4 sm:p-5 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 xl:gap-6">
+          <div className="w-full p-3.5 sm:p-5 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3.5 xl:gap-6">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleLookupFlight(flightNumberInput);
               }}
-              className="flex items-center flex-1 max-w-xl gap-3"
+              className="flex items-center flex-1 max-w-xl gap-2 sm:gap-3"
             >
-              <div className="relative flex-1">
+              <div className="relative flex-1 min-w-0">
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-outline" />
                 <input
                   type="text"
                   value={flightNumberInput}
                   onChange={(e) => setFlightNumberInput(e.target.value.toUpperCase())}
                   placeholder="Search flight code (e.g. AI202)..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-outline/60 focus:outline-none focus:ring-2 focus:ring-primary-container border border-surface-container-high font-mono text-xs sm:text-sm tracking-wide transition-all h-10"
+                  className="w-full pl-10 pr-3 sm:pr-4 py-2.5 rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-outline/60 focus:outline-none focus:ring-2 focus:ring-primary-container border border-surface-container-high font-mono text-xs sm:text-sm tracking-wide transition-all h-10"
                 />
               </div>
               <button
                 type="submit"
                 disabled={flightLoading}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary-container to-primary-fixed-dim text-on-primary text-xs sm:text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-md shrink-0 cursor-pointer disabled:opacity-50 h-10"
+                className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary-container to-primary-fixed-dim text-on-primary text-xs sm:text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-md shrink-0 cursor-pointer disabled:opacity-50 h-10"
               >
                 {flightLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plane className="w-4 h-4" />}
                 <span>Inspect</span>
@@ -276,27 +276,29 @@ export function AeroAIFlightIntelligenceView() {
             </form>
 
             {/* Quick Preset Pills */}
-            <div className="flex items-center flex-wrap gap-2 text-xs font-sans xl:pl-6 xl:border-l xl:border-surface-container-high/60">
-              <span className="text-on-surface-variant font-label-caps text-[11px] uppercase mr-1.5 tracking-wider font-semibold whitespace-nowrap">
+            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-xs font-sans xl:pl-6 xl:border-l xl:border-surface-container-high/60">
+              <span className="text-on-surface-variant font-label-caps text-[10px] sm:text-[11px] uppercase mr-1 tracking-wider font-semibold whitespace-nowrap">
                 Quick Presets:
               </span>
-              {SAMPLE_FLIGHTS.map((sf) => (
-                <button
-                  key={sf.code}
-                  onClick={() => {
-                    setFlightNumberInput(sf.code);
-                    handleLookupFlight(sf.code);
-                  }}
-                  className={`preset-btn min-w-[70px] justify-center px-3.5 py-1.5 rounded-lg font-mono text-xs font-bold transition-all hover:scale-105 cursor-pointer h-8 flex items-center shadow-sm ${
-                    flightNumberInput === sf.code
-                      ? 'bg-surface-container-high text-primary-container border border-primary/40'
-                      : 'bg-surface-container border border-surface-container-high text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
-                  }`}
-                  type="button"
-                >
-                  {sf.code}
-                </button>
-              ))}
+              <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
+                {SAMPLE_FLIGHTS.map((sf) => (
+                  <button
+                    key={sf.code}
+                    onClick={() => {
+                      setFlightNumberInput(sf.code);
+                      handleLookupFlight(sf.code);
+                    }}
+                    className={`preset-btn min-w-[56px] sm:min-w-[70px] justify-center px-2.5 sm:px-3.5 py-1.5 rounded-lg font-mono text-xs font-bold transition-all hover:scale-105 cursor-pointer h-8 flex items-center shadow-sm ${
+                      flightNumberInput === sf.code
+                        ? 'bg-surface-container-high text-primary-container border border-primary/40'
+                        : 'bg-surface-container border border-surface-container-high text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                    }`}
+                    type="button"
+                  >
+                    {sf.code}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -328,7 +330,7 @@ export function AeroAIFlightIntelligenceView() {
 
           {/* Main Analysis 3-Column Glass Bento Grid - Professional Aviation Dashboard */}
           {flightStatusData && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
               {/* Card 1: Operational Status */}
               <div className="flex flex-col justify-between p-5 sm:p-6 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm relative overflow-hidden group hover:border-primary-container/40 transition-all">
                 <div className="absolute -right-6 -top-6 w-28 h-28 bg-primary-container/5 rounded-full blur-xl group-hover:bg-primary-container/10 transition-all pointer-events-none" />
@@ -494,7 +496,7 @@ export function AeroAIFlightIntelligenceView() {
               </div>
 
               {/* Card 3: TreeSHAP Feature Attribution */}
-              <div className="flex flex-col justify-between p-5 sm:p-6 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm relative overflow-hidden group hover:border-primary-container/40 transition-all">
+              <div className="md:col-span-2 lg:col-span-1 flex flex-col justify-between p-5 sm:p-6 rounded-xl bg-surface-container-low/90 backdrop-blur-md border border-surface-container-high shadow-sm relative overflow-hidden group hover:border-primary-container/40 transition-all">
                 <div className="absolute -right-6 -top-6 w-28 h-28 bg-primary-container/5 rounded-full blur-xl group-hover:bg-primary-container/10 transition-all pointer-events-none" />
                 
                 <div className="flex flex-col gap-3.5 relative z-10">
@@ -596,36 +598,38 @@ export function AeroAIFlightIntelligenceView() {
               </div>
 
               {/* Corridor Search Controls with Clear Gap Between Route Selector and Search Button */}
-              <div className="flex items-center flex-wrap gap-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
                 {/* Route Selector Pill */}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-lowest border border-surface-container-high shadow-inner h-9">
+                <div className="flex items-center justify-between sm:justify-start gap-2 px-3 py-1.5 rounded-lg bg-surface-container-lowest border border-surface-container-high shadow-inner h-9">
                   <span className="text-[10px] text-outline font-label-caps uppercase tracking-wider font-semibold mr-0.5">
                     Route:
                   </span>
-                  <input
-                    type="text"
-                    maxLength={3}
-                    value={searchOrigin}
-                    onChange={(e) => setSearchOrigin(e.target.value.toUpperCase())}
-                    className="w-10 text-center bg-surface-container-high/90 text-primary font-mono text-xs font-bold rounded px-1 py-0.5 border border-surface-container-highest focus:outline-none focus:border-primary-container uppercase"
-                    placeholder="DEL"
-                  />
-                  <ArrowRight className="w-3.5 h-3.5 text-primary-container shrink-0" />
-                  <input
-                    type="text"
-                    maxLength={3}
-                    value={searchDest}
-                    onChange={(e) => setSearchDest(e.target.value.toUpperCase())}
-                    className="w-10 text-center bg-surface-container-high/90 text-primary font-mono text-xs font-bold rounded px-1 py-0.5 border border-surface-container-highest focus:outline-none focus:border-primary-container uppercase"
-                    placeholder="BOM"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      maxLength={3}
+                      value={searchOrigin}
+                      onChange={(e) => setSearchOrigin(e.target.value.toUpperCase())}
+                      className="w-10 text-center bg-surface-container-high/90 text-primary font-mono text-xs font-bold rounded px-1 py-0.5 border border-surface-container-highest focus:outline-none focus:border-primary-container uppercase"
+                      placeholder="DEL"
+                    />
+                    <ArrowRight className="w-3.5 h-3.5 text-primary-container shrink-0" />
+                    <input
+                      type="text"
+                      maxLength={3}
+                      value={searchDest}
+                      onChange={(e) => setSearchDest(e.target.value.toUpperCase())}
+                      className="w-10 text-center bg-surface-container-high/90 text-primary font-mono text-xs font-bold rounded px-1 py-0.5 border border-surface-container-highest focus:outline-none focus:border-primary-container uppercase"
+                      placeholder="BOM"
+                    />
+                  </div>
                 </div>
 
                 {/* Search Button Separated with Distinct Gap */}
                 <button
                   onClick={() => handleSearchInventory(searchOrigin, searchDest)}
                   disabled={searchLoading}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary-container text-xs font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm cursor-pointer disabled:opacity-50 h-9 shrink-0"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary-container text-xs font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm cursor-pointer disabled:opacity-50 h-9 w-full sm:w-auto shrink-0"
                   type="button"
                 >
                   {searchLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
@@ -1018,10 +1022,10 @@ export function AeroAIFlightIntelligenceView() {
       {activeTab === 'agent' && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-5 sm:gap-6">
           {/* Main Chat Stream */}
-          <div className="lg:col-span-3 bg-surface-container-low/90 rounded-xl border border-surface-container-high flex flex-col h-[560px] shadow-sm overflow-hidden backdrop-blur-md">
+          <div className="lg:col-span-3 bg-surface-container-low/90 rounded-xl border border-surface-container-high flex flex-col h-[500px] sm:h-[560px] shadow-sm overflow-hidden backdrop-blur-md">
             {/* Chat Header */}
-            <div className="p-4 sm:p-4.5 border-b border-surface-container-high bg-surface-container-lowest/80 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+            <div className="p-3.5 sm:p-4.5 border-b border-surface-container-high bg-surface-container-lowest/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-surface-container-high to-surface-container border border-primary-container/30 flex items-center justify-center text-primary-container shadow-sm shrink-0">
                   <Bot className="w-4 h-4 text-primary-container" />
                 </div>
@@ -1137,22 +1141,22 @@ export function AeroAIFlightIntelligenceView() {
                   e.preventDefault();
                   handleSendAgentQuery();
                 }}
-                className="flex items-center gap-3"
+                className="flex items-center gap-2 sm:gap-3"
               >
                 <input
                   type="text"
                   value={inputPrompt}
                   onChange={(e) => setInputPrompt(e.target.value)}
                   placeholder="Ask AeroAI (e.g., 'Will AI202 be delayed?', 'Can I get a refund for a 4hr delay?')"
-                  className="flex-1 bg-surface-container border border-surface-container-high rounded-lg px-4 py-2.5 text-xs sm:text-sm text-on-surface placeholder:text-outline/60 focus:outline-none focus:ring-2 focus:ring-primary-container transition h-10"
+                  className="min-w-0 flex-1 bg-surface-container border border-surface-container-high rounded-lg px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-on-surface placeholder:text-outline/60 focus:outline-none focus:ring-2 focus:ring-primary-container transition h-10"
                 />
                 <button
                   type="submit"
                   disabled={agentLoading || !inputPrompt.trim()}
-                  className="px-5 py-2.5 bg-gradient-to-r from-primary-container to-primary-fixed-dim hover:brightness-110 active:scale-[0.98] disabled:opacity-40 text-on-primary text-xs sm:text-sm font-bold rounded-lg flex items-center gap-2 transition shadow-md cursor-pointer h-10"
+                  className="px-3.5 sm:px-5 py-2.5 bg-gradient-to-r from-primary-container to-primary-fixed-dim hover:brightness-110 active:scale-[0.98] disabled:opacity-40 text-on-primary text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 transition shadow-md cursor-pointer h-10 shrink-0"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Ask</span>
+                  <Send className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Ask</span>
                 </button>
               </form>
             </div>

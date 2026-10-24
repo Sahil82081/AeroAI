@@ -146,70 +146,70 @@ export function PolicyAssistantChat({
   };
 
   return (
-    <div className={`flex flex-col h-[560px] max-h-[82vh] rounded-xl border border-surface-container-high bg-surface-container-low/90 shadow-xl backdrop-blur-2xl overflow-hidden relative ${embeddedMode ? 'h-full border-0' : ''}`}>
+    <div className={`flex flex-col h-[calc(100vh-14rem)] min-h-[620px] max-h-[820px] rounded-2xl border border-surface-container-high/80 bg-surface-container-low/95 shadow-2xl backdrop-blur-2xl overflow-hidden relative ${embeddedMode ? 'h-full border-0' : ''}`}>
       {/* Top subtle border glow line */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent pointer-events-none z-10" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent pointer-events-none z-10" />
 
       {/* Top Header */}
-      <div className="p-3 sm:p-3.5 border-b border-surface-container-high bg-surface-container-low/90 flex items-center justify-between gap-3 backdrop-blur-md">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.2)]">
-            <Scale className="w-4 h-4" />
+      <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-surface-container-high bg-surface-container-low/95 flex items-center justify-between gap-3 backdrop-blur-md">
+        <div className="flex items-center gap-3 sm:gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 shadow-[0_0_15px_rgba(99,102,241,0.2)] flex items-center justify-center shrink-0">
+            <Scale className="w-5 h-5 text-indigo-300" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <h2 className="text-xs sm:text-sm font-bold text-white tracking-tight font-display">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm sm:text-base font-bold text-white tracking-tight font-display">
                 Airline Policy & Passenger Rights Legal AI
               </h2>
-              <span className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+              <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                 Fact-Grounded RAG
               </span>
-              <span className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 flex items-center gap-1 hidden sm:inline-flex">
+              <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shadow-sm hidden sm:inline-flex">
                 <Sparkles className="w-3 h-3 text-sky-400" /> FAISS Vector Index
               </span>
             </div>
-            <p className="text-[10px] text-on-surface-variant mt-0.5 font-sans">
+            <p className="text-xs text-slate-300 mt-1 font-sans">
               DGCA CAR Series M Part IV &bull; EU Regulation 261/2004 &bull; US DOT 14 CFR Part 260
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleClearChat}
-            className="p-1.5 text-on-surface-variant hover:text-rose-300 hover:bg-rose-950/40 rounded-lg transition border border-transparent hover:border-rose-800/60 cursor-pointer"
+            className="h-9 w-9 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-950/40 border border-surface-container-high hover:border-rose-500/40 transition flex items-center justify-center cursor-pointer shadow-sm"
             title="Clear Chat History"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* Active Journey Personalization Alert */}
       {activeJourneyContext && (
-        <div className="px-4 py-2 bg-indigo-950/30 border-b border-indigo-500/20 text-xs text-indigo-200 flex items-center justify-between backdrop-blur-md">
-          <div className="flex items-center gap-1.5">
-            <Plane className="w-3.5 h-3.5 text-indigo-400" />
-            <span>
-              <strong>Personalized Context:</strong> Flight{' '}
+        <div className="px-4 sm:px-6 py-2.5 bg-indigo-950/40 border-b border-indigo-500/25 text-xs sm:text-[13px] text-indigo-100 flex items-center justify-between gap-3 backdrop-blur-md">
+          <div className="flex items-center gap-2 min-w-0">
+            <Plane className="w-4 h-4 text-indigo-300 shrink-0" />
+            <span className="truncate">
+              <strong className="text-indigo-200">Personalized Context:</strong> Flight{' '}
               <span className="font-semibold text-white">{activeJourneyContext.airline || 'Air India'} {activeJourneyContext.flight_number || 'AI-202'}</span>{' '}
-              ({activeJourneyContext.origin || 'BOM'} &rarr; {activeJourneyContext.destination || 'DEL'})
+              <span className="text-indigo-200">({activeJourneyContext.origin || 'BOM'} &rarr; {activeJourneyContext.destination || 'DEL'})</span>
               {activeJourneyContext.delay_minutes > 0 && (
-                <span className="ml-1 text-amber-300 font-semibold font-mono">
+                <span className="ml-1.5 text-amber-300 font-semibold font-mono">
                   &bull; +{activeJourneyContext.delay_minutes}m Delay
                 </span>
               )}
             </span>
           </div>
-          <span className="text-[9px] font-mono bg-indigo-900/60 px-2 py-0.5 rounded border border-indigo-700/60 text-indigo-300 font-medium">
+          <span className="text-[11px] font-mono bg-indigo-900/80 px-2.5 py-1 rounded-md border border-indigo-600/50 text-indigo-200 font-semibold shrink-0 shadow-sm">
             DGCA CAR M Active
           </span>
         </div>
       )}
 
       {/* Message List */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
             <motion.div
@@ -217,32 +217,32 @@ export function PolicyAssistantChat({
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className={`flex gap-2.5 max-w-3xl ${
+              className={`flex gap-3 sm:gap-3.5 max-w-4xl ${
                 msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
               }`}
             >
               {/* Avatar */}
               <div
-                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border shadow-inner ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-md ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-sky-600 to-indigo-600 text-white border-sky-400/40'
-                    : 'bg-surface-container-high text-indigo-300 border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.15)]'
+                    ? 'bg-gradient-to-br from-sky-600 to-indigo-600 text-white border-sky-400/50 shadow-sky-950/50'
+                    : 'bg-surface-container-high text-indigo-300 border-indigo-400/30 shadow-[0_0_12px_rgba(99,102,241,0.2)]'
                 }`}
               >
-                {msg.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+                {msg.role === 'user' ? <User className="w-4.5 h-4.5" /> : <Bot className="w-4.5 h-4.5" />}
               </div>
 
               {/* Bubble Content */}
-              <div className={`space-y-1.5 max-w-[85%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+              <div className={`space-y-2 max-w-[88%] sm:max-w-[82%] ${msg.role === 'user' ? 'text-right' : ''}`}>
                 <div
-                  className={`p-3 rounded-xl text-xs leading-relaxed shadow-md ${
+                  className={`p-4 sm:p-5 rounded-2xl text-[13.5px] sm:text-[14.5px] leading-relaxed shadow-lg ${
                     msg.role === 'user'
-                      ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-tr-none text-left shadow-[0_4px_16px_rgba(14,165,233,0.2)] font-sans'
-                      : 'bg-surface-container-high border border-surface-container-high text-slate-200 rounded-tl-none text-left backdrop-blur-md shadow-glass-card font-sans'
+                      ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-tr-sm text-left shadow-[0_4px_20px_rgba(14,165,233,0.25)] font-sans'
+                      : 'bg-[#182030] border border-surface-container-high text-slate-100 rounded-tl-sm text-left backdrop-blur-md shadow-glass-card font-sans'
                   }`}
                 >
-                  {/* Message text with basic markdown formatting */}
-                  <div className="whitespace-pre-wrap space-y-1.5">
+                  {/* Message text with clear markdown formatting and comfortable spacing */}
+                  <div className="whitespace-pre-wrap space-y-2.5">
                     {msg.content.split('\n\n').map((paragraph, pIdx) => (
                       <p key={pIdx}>
                         {paragraph.split('**').map((seg, sIdx) =>
@@ -255,31 +255,31 @@ export function PolicyAssistantChat({
 
                 {/* Citations Container */}
                 {msg.citations && msg.citations.length > 0 && (
-                  <div className="pt-1 space-y-1 text-left">
-                    <div className="text-[9px] font-mono font-semibold text-on-surface-variant flex items-center gap-1 uppercase tracking-wider">
-                      <FileText className="w-3 h-3 text-indigo-400" />
+                  <div className="pt-1.5 space-y-1.5 text-left">
+                    <div className="text-[11px] font-mono font-semibold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                      <FileText className="w-3.5 h-3.5 text-indigo-400" />
                       <span>Official Regulatory Citations:</span>
                     </div>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-2">
                       {msg.citations.map((cite, cIdx) => (
                         <a
                           key={cIdx}
                           href={cite.source_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded-lg bg-surface-container-high hover:bg-indigo-950/60 border border-surface-container-high hover:border-indigo-500/50 text-indigo-300 hover:text-indigo-200 transition cursor-pointer group"
+                          className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-lg bg-surface-container-high/90 hover:bg-indigo-950/70 border border-surface-container-high hover:border-sky-400/40 text-indigo-200 hover:text-white transition cursor-pointer group shadow-sm"
                           title={`Open official document: ${cite.document_title} (${cite.section})`}
                         >
-                          <span className="font-semibold text-sky-400">{cite.regulator || cite.region}:</span>
-                          <span className="truncate max-w-[180px]">{cite.document_title}</span>
-                          <ExternalLink className="w-2.5 h-2.5 text-outline group-hover:text-indigo-300 shrink-0" />
+                          <span className="font-bold text-sky-400">{cite.regulator || cite.region}:</span>
+                          <span className="truncate max-w-[220px] text-slate-200 group-hover:text-white">{cite.document_title}</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-sky-300 shrink-0" />
                         </a>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="text-[9px] text-outline font-mono px-1">
+                <div className="text-[11px] text-slate-400 font-mono px-1">
                   {msg.timestamp}
                 </div>
               </div>
@@ -292,18 +292,18 @@ export function PolicyAssistantChat({
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex gap-2.5 mr-auto max-w-lg"
+            className="flex gap-3 sm:gap-3.5 mr-auto max-w-lg"
           >
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-surface-container-high text-indigo-300 border border-indigo-500/40">
-              <Bot className="w-3.5 h-3.5" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-surface-container-high text-indigo-300 border border-indigo-500/40 shadow-sm">
+              <Bot className="w-4.5 h-4.5" />
             </div>
-            <div className="p-3 rounded-xl bg-surface-container-high border border-surface-container-high text-xs text-slate-300 rounded-tl-none flex items-center gap-2.5 backdrop-blur-md">
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#182030] border border-surface-container-high text-xs sm:text-sm text-slate-200 rounded-tl-sm flex items-center gap-3 backdrop-blur-md shadow-md">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-              <span className="text-[10px] text-on-surface-variant font-mono">Consulting DGCA CAR & Airline Conditions of Carriage...</span>
+              <span className="text-xs text-slate-300 font-mono">Consulting DGCA CAR &amp; Airline Conditions of Carriage...</span>
             </div>
           </motion.div>
         )}
@@ -312,17 +312,17 @@ export function PolicyAssistantChat({
       </div>
 
       {/* Suggested Questions Chips */}
-      <div className="p-2 border-t border-surface-container-high bg-surface-container-lowest backdrop-blur-md">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-on-surface-variant scrollbar-thin">
-          <span className="text-[9px] font-mono font-semibold flex items-center gap-1 shrink-0 text-on-surface-variant uppercase tracking-wider">
-            <HelpCircle className="w-3 h-3 text-sky-400" /> Prompts:
+      <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-surface-container-high/70 bg-surface-container-low/70 backdrop-blur-md">
+        <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto pb-1 text-slate-300 scrollbar-thin">
+          <span className="text-xs font-mono font-bold flex items-center gap-1.5 shrink-0 text-sky-400 uppercase tracking-wider bg-sky-500/10 px-2.5 py-1.5 rounded-lg border border-sky-400/25">
+            <HelpCircle className="w-3.5 h-3.5 text-sky-400" /> Prompts:
           </span>
           {DEFAULT_SUGGESTIONS.map((q, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(q)}
               disabled={loading}
-              className="text-[10px] whitespace-nowrap px-2.5 py-1 rounded-lg bg-surface-container-high hover:bg-slate-800 text-slate-300 hover:text-white border border-surface-container-high hover:border-sky-500/40 transition cursor-pointer shrink-0 disabled:opacity-50"
+              className="text-xs sm:text-[13px] whitespace-nowrap px-3.5 py-2 rounded-xl bg-surface-container-high/90 hover:bg-surface-container-highest text-slate-200 hover:text-white border border-surface-container-high hover:border-sky-400/50 transition-all cursor-pointer shrink-0 disabled:opacity-50 h-9 flex items-center shadow-sm hover:scale-[1.01] active:scale-[0.99]"
             >
               {q}
             </button>
@@ -331,36 +331,36 @@ export function PolicyAssistantChat({
       </div>
 
       {/* Input Bar */}
-      <div className="p-3 border-t border-surface-container-high bg-surface-container-low">
+      <div className="p-3.5 sm:p-4 border-t border-surface-container-high/80 bg-surface-container-lowest/90 backdrop-blur-md">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2.5 sm:gap-3"
         >
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about flight delay compensation, DGCA refunds, IndiGo/Air India carriage rules..."
               disabled={loading}
-              className="w-full bg-surface-container-lowest border border-surface-container-high rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 focus:shadow-[0_0_12px_rgba(56,189,248,0.2)] transition font-sans h-8.5"
+              className="w-full bg-surface-container-low/90 border border-surface-container-high rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400/40 transition font-sans h-12 shadow-inner"
             />
           </div>
           <motion.button
             type="submit"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
             disabled={!input.trim() || loading}
-            className="w-8.5 h-8.5 rounded-lg bg-gradient-to-r from-sky-600 via-sky-500 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-40 disabled:hover:from-sky-600 text-white transition shadow-[0_0_15px_rgba(14,165,233,0.25)] cursor-pointer shrink-0 flex items-center justify-center"
+            className="h-12 w-12 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-40 disabled:hover:from-sky-500 text-white transition shadow-[0_0_15px_rgba(14,165,233,0.3)] cursor-pointer shrink-0 flex items-center justify-center"
             title="Send Query"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-5 h-5 text-white" />
           </motion.button>
         </form>
-        <div className="mt-1 text-[9px] text-outline text-center font-mono">
+        <div className="mt-2 text-[11px] sm:text-xs text-slate-400 text-center font-mono">
           Answers grounded strictly in official civil aviation charters &bull; Zero hallucination guardrails
         </div>
       </div>

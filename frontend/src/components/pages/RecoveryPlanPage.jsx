@@ -142,7 +142,7 @@ export function RecoveryPlanPage({
   return (
     <div className="space-y-4">
       {/* Sub-navigation bar */}
-      <div className="rounded-xl border border-surface-container-high bg-surface-container-low/90 p-2.5 sm:p-3 flex flex-wrap items-center justify-between gap-2.5 backdrop-blur-md shadow-sm">
+      <div className="rounded-xl border border-surface-container-high bg-surface-container-low/90 p-2.5 sm:p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 backdrop-blur-md shadow-sm">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setSubView('overview')}
@@ -178,13 +178,13 @@ export function RecoveryPlanPage({
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start lg:self-auto w-full lg:w-auto justify-end">
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setRejectModalOpen(true)}
             disabled={executingActions || revising}
-            className="px-3.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer font-display h-8"
+            className="flex-1 lg:flex-initial px-3.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer font-display h-8"
             title="Reject proposed plan and trigger replanning"
           >
             <XCircle className="w-3.5 h-3.5 text-amber-400" />
@@ -196,7 +196,7 @@ export function RecoveryPlanPage({
             whileTap={{ scale: 0.98 }}
             onClick={() => setConfirmModalOpen(true)}
             disabled={executingActions || revising}
-            className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer font-display h-8"
+            className="flex-1 lg:flex-initial px-4 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer font-display h-8"
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>
@@ -333,7 +333,7 @@ export function RecoveryPlanPage({
               <p className="text-xs text-slate-300 leading-relaxed font-sans">
                 "Flight delay causes the traveler to miss the Delhi–Jaipur train (<strong>12015-SHT</strong> departing <strong>13:30 IST</strong>) because the revised arrival time (<strong>16:00 IST</strong>) is 150 minutes after train departure."
               </p>
-              <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-mono">
                 <div className="p-2 rounded-lg bg-rose-950/25 border border-rose-500/30 text-rose-200">
                   <div className="font-bold">Train 12015-SHT</div>
                   <div className="text-[9px] opacity-80">MISSED (13:30)</div>

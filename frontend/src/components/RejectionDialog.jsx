@@ -63,13 +63,13 @@ export function RejectionDialog({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
           transition={{ duration: 0.18 }}
-          className="w-full max-w-lg rounded-2xl border border-amber-500/35 bg-surface-container-lowest/95 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-2xl text-on-surface relative overflow-hidden"
+          className="w-full max-w-lg rounded-2xl border border-amber-500/35 bg-surface-container-lowest/95 p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-2xl text-on-surface relative overflow-hidden my-auto max-h-[92vh] flex flex-col justify-between"
         >
           {/* Ambient Glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
@@ -105,7 +105,7 @@ export function RejectionDialog({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4 relative z-10">
+          <form onSubmit={handleSubmit} className="mt-3 sm:mt-4 space-y-3.5 sm:space-y-4 relative z-10 overflow-y-auto pr-1">
             {/* Retained Constraints Callout */}
             {retainedList.length > 0 && (
               <div className="p-2.5 rounded-xl border border-sky-500/30 bg-sky-950/20 text-xs text-sky-200 space-y-1 font-sans">
@@ -204,12 +204,12 @@ export function RejectionDialog({
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-surface-container-high">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 pt-3 border-t border-surface-container-high shrink-0">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="px-3.5 py-1.5 rounded-lg border border-surface-container-high bg-surface-container-lowest hover:bg-surface-container-high text-xs text-slate-300 hover:text-white font-medium transition cursor-pointer font-display h-8"
+                className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg border border-surface-container-high bg-surface-container-lowest hover:bg-surface-container-high text-xs text-slate-300 hover:text-white font-medium transition cursor-pointer font-display h-8.5 sm:h-8 flex items-center justify-center"
               >
                 Cancel
               </button>
@@ -217,7 +217,7 @@ export function RejectionDialog({
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition cursor-pointer font-display h-8 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition cursor-pointer font-display h-8.5 sm:h-8 disabled:opacity-50"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{submitting ? 'Formulating Revised Plan...' : 'Submit Rejection & Replan'}</span>

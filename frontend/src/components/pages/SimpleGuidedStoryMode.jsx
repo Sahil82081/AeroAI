@@ -1233,16 +1233,16 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                       : 'border-surface-container-high bg-surface-container-low/90 hover:border-white/20'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-lg bg-surface-container-lowest border border-surface-container-high shadow-inner">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2.5 rounded-lg bg-surface-container-lowest border border-surface-container-high shadow-inner shrink-0">
                       {getIcon(b.booking_type)}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm font-bold text-white font-display">{b.title}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-white font-display break-words">{b.title}</span>
                         <span className="text-[11px] font-mono text-on-surface-variant">({b.reference_number})</span>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border shrink-0 ${
                             b.status === 'CONFIRMED'
                               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_6px_rgba(16,185,129,0.15)]'
                               : 'bg-rose-500/20 text-rose-300 border-rose-500/30 shadow-[0_0_6px_rgba(244,63,94,0.15)]'
@@ -1266,7 +1266,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
                   </div>
 
                   {/* Action Controls on Transport Cards */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                     {idx === 0 && b.status === 'CONFIRMED' && (
                       <div className="flex items-center gap-1">
                         <select
@@ -1339,11 +1339,11 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
 
       {/* Manual Alternatives Review Modal */}
       {showManualModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-2xl border border-sky-500/40 bg-surface-container-lowest/95 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl text-on-surface space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-sky-500/40 bg-surface-container-lowest/95 p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl text-on-surface space-y-4 my-auto max-h-[92vh] flex flex-col justify-between">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-3 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
                   <Eye className="w-5 h-5" />
                 </div>
                 <div>
@@ -1364,7 +1364,7 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
               </button>
             </div>
 
-            <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+            <div className="max-h-80 overflow-y-auto space-y-2 pr-1 flex-1">
               {['FLIGHT', 'TRAIN', 'BUS'].map((cat) => {
                 const items = catalog[cat] || [];
                 return (
@@ -1400,14 +1400,14 @@ export function SimpleGuidedStoryMode({ onRunBackendE2E, onSync, onOpenAdvancedP
               })}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-surface-container-high text-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-surface-container-high text-xs shrink-0">
               <span className="text-slate-400">
                 To adjust automated recovery rules, click <strong className="text-amber-300">Adjust Constraints</strong>.
               </span>
               <button
                 type="button"
                 onClick={() => setShowManualModal(false)}
-                className="px-4 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-white font-medium transition cursor-pointer font-display h-8"
+                className="w-full sm:w-auto px-4 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-white font-medium transition cursor-pointer font-display h-8 flex items-center justify-center"
               >
                 Close Review
               </button>

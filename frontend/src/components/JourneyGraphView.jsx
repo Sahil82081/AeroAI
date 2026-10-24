@@ -100,7 +100,7 @@ export function JourneyGraphView({
     <div className="space-y-4">
       
       {/* Top Banner: NetworkX Graph Topology & Risk Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         
         {/* Metric 1: Total Multi-Modal Nodes */}
         <StatCard

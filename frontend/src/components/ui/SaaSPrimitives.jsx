@@ -213,7 +213,7 @@ export function ToastViewport({ toasts = [], onDismiss }) {
   if (!toasts || toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+    <div className="fixed bottom-4 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-auto z-50 flex flex-col gap-2 sm:gap-2.5 sm:max-w-sm pointer-events-none">
       <AnimatePresence>
         {toasts.map((t) => {
           const toneStyles =
@@ -285,13 +285,13 @@ export function ConfirmDialog({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-surface-container-lowest/80 backdrop-blur-md overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-md w-full rounded-xl border border-surface-container-high bg-surface-container-low p-4 sm:p-5 shadow-xl space-y-3 relative overflow-hidden"
+            className="max-w-md w-full rounded-xl border border-surface-container-high bg-surface-container-low p-4 sm:p-5 shadow-xl space-y-3 relative overflow-hidden my-auto max-h-[92vh] flex flex-col justify-between"
           >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-container/40 to-transparent" />
             

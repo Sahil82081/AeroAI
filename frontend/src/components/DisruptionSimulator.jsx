@@ -162,9 +162,9 @@ export function DisruptionSimulator({
         <div className="p-3.5 sm:p-4 rounded-xl bg-[#070b16]/80 backdrop-blur-2xl border border-white/[0.08] shadow-sm space-y-4 relative overflow-hidden">
           
           {/* Header & Severity Banner */}
-          <div className="flex items-start justify-between border-b border-white/[0.08] pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-white/[0.08] pb-3 gap-2.5">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <div className="p-1.5 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 shrink-0">
                 <BrainCircuit className="w-4 h-4" />
               </div>
               <div>
@@ -177,7 +177,7 @@ export function DisruptionSimulator({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider border ${
                 latestImpactResult.severity === 'CRITICAL'
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'

@@ -154,7 +154,7 @@ export function DashboardShell({
       <header className="fixed top-0 left-0 right-0 z-40 bg-surface-container-lowest/90 backdrop-blur-xl border-b border-surface-container-high/60 transition-all">
         <div
           ref={navBarRef}
-          className="max-w-7xl mx-auto min-h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sm:gap-6"
+          className="max-w-7xl mx-auto min-h-16 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-3 sm:gap-6"
         >
           {/* Brand Logo & Tag */}
           <div
@@ -322,7 +322,7 @@ export function DashboardShell({
         style={{ paddingTop: 'calc(var(--header-height, 64px) + 24px)' }}
         className="flex-1 w-full pb-10 bg-transparent"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
           <ErrorAlertBanner error={error} onRetry={onRefresh} />
 
           <AnimatePresence mode="wait">
@@ -461,7 +461,7 @@ export function DashboardShell({
 
               {/* TAB 5: POLICY CHATBOT */}
               {activePage === 'chatbot' && (
-                <div className="space-y-4">
+                <div className="w-full max-w-5xl mx-auto">
                   <PolicyAssistantChat
                     activeJourneyContext={
                       currentJourney
@@ -504,7 +504,7 @@ export function DashboardShell({
       )}
 
       {/* Footer matching Google Stitch Reference */}
-      <footer className="w-full bg-surface-container-lowest border-t border-surface-container-high/40 py-6 mt-16">
+      <footer className={`w-full bg-surface-container-lowest border-t border-surface-container-high/40 py-6 ${activePage === 'chatbot' ? 'mt-6 sm:mt-8' : 'mt-16'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-outline font-body-sm text-body-sm">
           <div>© 2025 AeroAI Avionics & Flight Recovery Intelligence. All rights reserved.</div>
           <div className="flex items-center gap-3">
