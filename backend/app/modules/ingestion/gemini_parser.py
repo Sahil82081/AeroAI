@@ -60,22 +60,27 @@ class GeminiEmailParser:
             from app.modules.ingestion.heuristic_parser import HeuristicEmailParser
             return HeuristicEmailParser.parse(subject, body)
 
-        prompt = GEMINI_PROMPT_TEMPLATE.format(subject=subject, body=body)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-
-        payload = {
-            "contents": [
-                {
-                    "parts": [{"text": prompt}]
-                }
-            ],
-            "generationConfig": {
-                "temperature": 0.1,
-                "responseMimeType": "application/json"
-            }
-        }
-
         try:
+            # Use safe string replacement instead of str.format to prevent KeyError on JSON schema brackets
+            prompt = (
+                GEMINI_PROMPT_TEMPLATE
+                .replace("{subject}", str(subject or ""))
+                .replace("{body}", str(body or ""))
+            )
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+            payload = {
+                "contents": [
+                    {
+                        "parts": [{"text": prompt}]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 0.1,
+                    "responseMimeType": "application/json"
+                }
+            }
+
             async with httpx.AsyncClient(timeout=15.0) as client:
                 res = await client.post(url, json=payload)
                 if res.status_code != 200:
@@ -84,7 +89,12 @@ class GeminiEmailParser:
                     return HeuristicEmailParser.parse(subject, body)
                 
                 resp_json = res.json()
-                text_content = resp_json["candidates"][0]["content"]["parts"][0]["text"]
+                text_content = resp_json["candidates"][0]["content"]["parts"][0]["text"].strip()
+                if text_content.startswith("```"):
+                    import re
+                    text_content = re.sub(r"^```(?:json)?\s*", "", text_content)
+                    text_content = re.sub(r"\s*```$", "", text_content).strip()
+
                 parsed_json = json.loads(text_content)
 
                 model_confidence = float(parsed_json.pop("confidence", 0.85))

@@ -109,7 +109,13 @@ export function App() {
       await loadData();
     } catch (err) {
       console.error('Error forwarding email:', err);
-      setError(err.response?.data?.detail || 'Failed to forward email');
+      const detail = err.response?.data?.detail;
+      const errorMsg = typeof detail === 'string'
+        ? detail
+        : (Array.isArray(detail)
+            ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+            : (err.message || 'Failed to forward email'));
+      setError(errorMsg);
     } finally {
       setForwardingLoading(false);
     }
@@ -125,7 +131,13 @@ export function App() {
       await loadData();
     } catch (err) {
       console.error('Error simulating disruption:', err);
-      setError(err.response?.data?.detail || 'Failed to simulate disruption');
+      const detail = err.response?.data?.detail;
+      const errorMsg = typeof detail === 'string'
+        ? detail
+        : (Array.isArray(detail)
+            ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+            : (err.message || 'Failed to simulate disruption'));
+      setError(errorMsg);
     } finally {
       setSimulationLoading(false);
     }

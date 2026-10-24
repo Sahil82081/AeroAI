@@ -23,6 +23,35 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/login')
+    ) {
+      originalRequest._retry = true;
+      try {
+        const loginRes = await axios.post(`${API_BASE_URL}/auth/login`, {
+          email: 'traveler@example.com',
+          password: 'password123',
+        });
+        if (loginRes.data?.access_token) {
+          localStorage.setItem('adr_access_token', loginRes.data.access_token);
+          originalRequest.headers.Authorization = `Bearer ${loginRes.data.access_token}`;
+          return apiClient(originalRequest);
+        }
+      } catch (authErr) {
+        console.warn('Auto re-login failed:', authErr);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const apiService = {
   // Health
   checkHealth: async () => {
