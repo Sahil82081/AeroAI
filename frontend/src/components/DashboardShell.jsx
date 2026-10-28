@@ -214,19 +214,6 @@ export function DashboardShell({
 
           {/* Right Status Controls with Clear Gaps */}
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-            {/* Ask Policy AI Top CTA */}
-            <button
-              onClick={() => setActivePage('chatbot')}
-              className="relative hidden sm:flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary border border-primary/25 hover:border-primary/50 transition-all text-xs font-semibold group cursor-pointer h-9 shadow-sm whitespace-nowrap shrink-0"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-primary group-hover:scale-105 transition-transform" />
-              <span className="font-telemetry-data">Ask Policy AI</span>
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-container" />
-              </span>
-            </button>
-
             {/* Quick Traveler Profile Button */}
             <button
               onClick={() => setShowAuthModal(true)}
