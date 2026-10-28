@@ -24,7 +24,6 @@ import { JourneyGraphView } from './JourneyGraphView';
 import { SupplierEcosystemView } from './SupplierEcosystemView';
 import { ActionExecutionView } from './ActionExecutionView';
 import { NotificationInboxView } from './NotificationInboxView';
-import { RecoveryPlanPage } from './pages/RecoveryPlanPage';
 import { SimpleGuidedStoryMode } from './pages/SimpleGuidedStoryMode';
 import { PolicyAssistantChat } from './PolicyAssistantChat';
 import { AeroAIFlightIntelligenceView } from './AeroAIFlightIntelligenceView';
@@ -62,7 +61,7 @@ export function DashboardShell({
   const [toasts, setToasts] = useState([]);
   const [actionHistory, setActionHistory] = useState(null);
   const [runningDemo, setRunningDemo] = useState(false);
-  const [optimizerSubTab, setOptimizerSubTab] = useState('optimizer');
+  const [optimizerSubTab, setOptimizerSubTab] = useState('graph');
   const [logsSubTab, setLogsSubTab] = useState('emails');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -365,16 +364,6 @@ export function DashboardShell({
                   {/* Segmented Viewport Switcher */}
                   <div className="inline-flex items-center flex-wrap p-1.5 rounded-2xl bg-surface-container-low/90 backdrop-blur-xl border border-surface-container-high shadow-xl gap-2 shrink-0">
                     <button
-                      onClick={() => setOptimizerSubTab('optimizer')}
-                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
-                        optimizerSubTab === 'optimizer'
-                          ? 'bg-surface-container-high text-primary-container shadow-md border border-primary/20 font-bold'
-                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 font-medium'
-                      }`}
-                    >
-                      OR-Tools Optimization Math
-                    </button>
-                    <button
                       onClick={() => setOptimizerSubTab('graph')}
                       className={`px-4 py-2 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                         optimizerSubTab === 'graph'
@@ -396,13 +385,6 @@ export function DashboardShell({
                     </button>
                   </div>
 
-                  {optimizerSubTab === 'optimizer' && (
-                    <RecoveryPlanPage
-                      onExecuteRecoveryActions={handleExecuteRecoveryPlanActions}
-                      executingActions={runningDemo}
-                      actionExecutionResult={actionHistory}
-                    />
-                  )}
                   {optimizerSubTab === 'graph' && (
                     <JourneyGraphView
                       journey={currentJourney}
